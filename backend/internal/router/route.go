@@ -13,7 +13,8 @@ func NewRouter() *gin.Engine {
 	// ヘルスチェック
 	r.GET("/health", func (c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-				"message": "OKです",
+				"message": "OK",
+
 		})
 	})
 
