@@ -4,7 +4,7 @@ testdata_dir = "testdata"
 
 [build]
   args_bin = []
-  cmd = "go build -o ./tmp/habit-tracker"
+  cmd = "go build -o ./tmp/habit-tracker ./cmd/habit-tracker"
   bin = "./tmp/habit-tracker"
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
