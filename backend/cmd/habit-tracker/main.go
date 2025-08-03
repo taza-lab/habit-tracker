@@ -1,19 +1,10 @@
 package main
 
 import (
-	"net/http"
-
-    "github.com/gin-gonic/gin"
+    "backend/internal/router"
 )
 
-func ok(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-            "message": "OKです",
-    })
-}
-
 func main() {
-    router := gin.Default()
-    router.GET("/", ok)
-    router.Run(":8080")
+    r := router.NewRouter()
+    r.Run(":8080")
 }
