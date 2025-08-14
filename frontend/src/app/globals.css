@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "bootstrap-icons/font/bootstrap-icons.css";
 
 :root {
   --background: #ffffff;
@@ -23,4 +24,28 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* originals */
+.common-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border: solid 1px #ccc;
+  z-index: 1000;
+}
+
+.btn {
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+input {
+  background: #f0f0f0;
+  border-bottom: 1px solid #9f9f9f;
 }
