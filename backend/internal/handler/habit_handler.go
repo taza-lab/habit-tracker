@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"time"
 
     "github.com/gin-gonic/gin"
 )
@@ -30,7 +31,7 @@ func GetHabit(c *gin.Context) {
 }
 
 func RegisterHabit(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "success"})
+	c.JSON(http.StatusOK, gin.H{"message": "success", "id": time.Now().Format("20060102150405")})
 }
 
 func UpdateHabit(c *gin.Context) {
