@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, List, ListItem, ListItemIcon, ListItemText, IconButton } from '@mui/material';
-import AddCircleRoundedIcon from '@mui/icons-material/AddCircleRounded';
+import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, List, ListItem, ListItemIcon, ListItemText, IconButton, Fab } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import SentimentSatisfiedRoundedIcon from '@mui/icons-material/SentimentSatisfiedRounded';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import { fetchHabits, createHabit, deleteHabit } from './features/habit/api';
 import { Habit } from './types/habit';
+import PageTitle from './components/PageTitle';
 
 type Mode = 'create' | 'edit' | 'delete';
 
@@ -66,10 +67,9 @@ export default function Home() {
 
     // 削除送信
     const handleDeleteSubmit = (id: string) => {
-        setHabits(prev => prev.filter(habit => habit.id !== id));
-
         try {
             const result = deleteHabit(id);
+            setHabits(prev => prev.filter(habit => habit.id !== id));
         } catch (err) {
             setError('削除に失敗しました');
         }
@@ -79,12 +79,14 @@ export default function Home() {
 
     return (
         <div style={{ padding: '2rem' }}>
-            <h1>習慣一覧</h1>
-            {habits.length === 0 ? (
-                <p>習慣が登録されていません。</p>
-            ) : (
-                <List>
-                    {habits.map(habit => (
+            <PageTitle title="習慣一覧" />
+            <List>
+                {habits.length === 0 ? (
+                    <ListItem>
+                        <ListItemText primary="習慣が登録されていません。" />
+                    </ListItem>
+                ) : (
+                    habits.map(habit => (
                         <ListItem key={habit.id}>
                             <ListItemIcon>
                                 <SentimentSatisfiedRoundedIcon />
@@ -95,10 +97,21 @@ export default function Home() {
                             </ListItemIcon>
 
                         </ListItem>
-                    ))}
-                </List>
-            )}
-            <AddCircleRoundedIcon onClick={() => openModal('create')} />
+                    ))
+                )}
+            </List>
+            <Fab
+                size="medium"
+                color="secondary"
+                aria-label="add"
+                sx={{
+                    position: "fixed",
+                    bottom: 100,
+                    right: 30,
+                }}
+            >
+                <AddIcon onClick={() => openModal('create')} />
+            </Fab>
 
             {modalMode && (
                 <Modal

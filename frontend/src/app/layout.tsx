@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import theme from './theme';
+import Layout from "./components/Layout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +34,7 @@ export default function RootLayout({
       >
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          {children}
+          <Layout>{children}</Layout>
         </ThemeProvider>
       </body>
     </html>
