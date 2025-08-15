@@ -1,6 +1,6 @@
 import { Habit } from '../../types/habit';
 
-const BASE_URL = 'http://localhost:8080'; // TODO: 環境変数に定義
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export async function fetchHabits(): Promise<Habit[]> {
     const res = await fetch(`${BASE_URL}/habit/list`);
