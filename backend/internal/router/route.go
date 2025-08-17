@@ -30,6 +30,11 @@ func NewRouter() *gin.Engine {
 		})
 	})
 
+	// 習慣トラック
+	r.GET("/daily_track/:date", handler.GetDailyTrack)
+	r.POST("/daily_track/done", handler.UpdateDoneDailyTrack)
+
+	// 習慣の管理
     r.GET("/habit/list", handler.GetHabitList)
 	r.GET("/habit/:id", handler.GetHabit)
 	r.POST("/habit/register", handler.RegisterHabit)

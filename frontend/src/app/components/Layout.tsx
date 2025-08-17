@@ -1,6 +1,7 @@
 import { AppBar, Toolbar, Typography, Box, Container, BottomNavigation, BottomNavigationAction, Paper } from "@mui/material";
 import React, { ReactNode } from "react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import HomeIcon from "@mui/icons-material/Home";
 import SearchIcon from "@mui/icons-material/Search";
 import NotificationsIcon from "@mui/icons-material/Notifications";
@@ -11,7 +12,8 @@ type LayoutProps = {
 };
 
 const Layout = ({ children }: LayoutProps) => {
-    const [value, setValue] = useState(0);
+    const [selectedMenu, setSelectedMenu] = useState(0);
+    const router = useRouter();
 
     return (
         <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
@@ -31,15 +33,15 @@ const Layout = ({ children }: LayoutProps) => {
             <Paper sx={{ position: "fixed", bottom: 0, left: 0, right: 0, height: "65px" }} elevation={3}>
                 <BottomNavigation
                     showLabels
-                    value={value}
+                    value={selectedMenu}
                     onChange={(event, newValue) => {
-                        setValue(newValue);
+                        setSelectedMenu(newValue);
                     }}
                 >
-                    <BottomNavigationAction label="ホーム" icon={<HomeIcon />} />
-                    <BottomNavigationAction label="検索" icon={<SearchIcon />} />
-                    <BottomNavigationAction label="通知" icon={<NotificationsIcon />} />
-                    <BottomNavigationAction label="設定" icon={<SettingsIcon />} />
+                    <BottomNavigationAction label="ホーム" icon={<HomeIcon />} onClick={() => router.push("/")} />
+                    <BottomNavigationAction label="検索" icon={<SearchIcon />} onClick={() => router.push("/")} />
+                    <BottomNavigationAction label="通知" icon={<NotificationsIcon />} onClick={() => router.push("/")} />
+                    <BottomNavigationAction label="設定" icon={<SettingsIcon />} onClick={() => router.push("/habit-manage")} />
                 </BottomNavigation>
             </Paper>
         </Box >
