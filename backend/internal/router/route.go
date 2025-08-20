@@ -30,6 +30,9 @@ func NewRouter() *gin.Engine {
 		})
 	})
 
+	// ユーザー
+	r.GET("user", handler.GetUser) // TODO: ログイン, ユーザー取得を合わせて行う
+
 	// 習慣トラック
 	r.GET("/daily_track/:date", handler.GetDailyTrack)
 	r.POST("/daily_track/done", handler.UpdateDoneDailyTrack)
