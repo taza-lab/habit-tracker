@@ -4,15 +4,15 @@ import (
 	"net/http"
 
     "github.com/gin-gonic/gin"
-	"backend/internal/domain/model"
+	"backend/internal/domain/habit_track"
 )
 
 func GetDailyTrack(c *gin.Context) {
-	var data = model.DailyTrack{
+	var data = habit_track.DailyTrack{
 		Date: c.Param("date"),
-		Habits: []model.HabitStatus{
-			{Habit: model.Habit{Id: 1, Name: "朝ヨガ"}, IsDone: false},
-			{Habit: model.Habit{Id: 2, Name: "勉強"}, IsDone: false},
+		Habits: []habit_track.HabitStatus{
+			{Habit: habit_track.Habit{Id: 1, Name: "朝ヨガ"}, IsDone: false},
+			{Habit: habit_track.Habit{Id: 2, Name: "勉強"}, IsDone: false},
 		},
 	}
 
