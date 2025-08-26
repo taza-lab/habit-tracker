@@ -6,9 +6,9 @@ import AddIcon from '@mui/icons-material/Add';
 import SentimentSatisfiedRoundedIcon from '@mui/icons-material/SentimentSatisfiedRounded';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
-import { fetchHabits, createHabit, deleteHabit } from '../features/habit/api';
-import { Habit } from '../types/habit';
-import PageTitle from '../components/PageTitle';
+import { fetchHabits, createHabit, deleteHabit } from '@/features/habit/api';
+import { Habit } from '@/types/habit';
+import PageTitle from '@/components/PageTitle';
 
 type Mode = 'create' | 'edit' | 'delete';
 
