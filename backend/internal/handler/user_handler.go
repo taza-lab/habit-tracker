@@ -30,7 +30,7 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	if req.Password != req.ConfirmPassword {
+	if signUpRequest.Password != signUpRequest.ConfirmPassword {
         c.JSON(http.StatusBadRequest, gin.H{"error": "確認用パスワードが一致しません。"})
         return
     }
