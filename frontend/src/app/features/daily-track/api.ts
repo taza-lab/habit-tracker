@@ -1,22 +1,26 @@
-import { DailyTrack } from '../../types/daily-track';
+import { DailyTrack } from '@/types/daily-track';
+import { getAuthHeaders } from '@/lib/api';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export async function fetchTodaysTrack(): Promise<DailyTrack> {
     const today = createTodayString();
+    const headers = getAuthHeaders();
 
-    const res = await fetch(`${BASE_URL}/daily_track/${today}`);
+    const res = await fetch(`${BASE_URL}/auth/daily_track/${today}`, { headers: headers });
     if (!res.ok) throw new Error('Failed to fetch todays track');
     return res.json();
 }
 
 export async function todaysHabitDone(habitId: string): Promise<void> {
     const today = createTodayString();
+    const headers = getAuthHeaders();
 
     const res = await fetch(
-        `${BASE_URL}/daily_track/done`,
+        `${BASE_URL}/auth/daily_track/done`,
         {
             method: 'POST',
+            headers: headers,
             body: JSON.stringify({ date: today, habit_id: habitId })
         }
     );

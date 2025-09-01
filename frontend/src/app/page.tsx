@@ -3,13 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
 import { List, ListItem, ListItemIcon, ListItemText, Button } from '@mui/material';
-import PageTitle from './components/PageTitle';
-import CheckBox from './components/DailyTrack/CheckBox';
-import { DailyTrack } from './types/daily-track';
-import { fetchTodaysTrack, todaysHabitDone } from './features/daily-track/api';
-import { fetchUser } from './features/user/api';
-import { usePoint } from './context/PointContext';
-import { useAlert } from './context/AlertContext';
+import PageTitle from '@/components/PageTitle';
+import CheckBox from '@/components/DailyTrack/CheckBox';
+import { DailyTrack } from '@/types/daily-track';
+import { fetchTodaysTrack, todaysHabitDone } from '@/features/daily-track/api';
+import { fetchUser } from '@/features/user/api';
+import { usePoint } from '@/context/PointContext';
+import { useAlert } from '@/context/AlertContext';
 
 export default function Home() {
     // 定数定義
@@ -17,7 +17,7 @@ export default function Home() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
-    const { setPoints, addPoints } = usePoint();
+    const { points, setPoints, addPoints } = usePoint();
     const { showAlert } = useAlert();
 
     // 初期表示
@@ -27,10 +27,14 @@ export default function Home() {
                 const data = await fetchTodaysTrack();
                 setTodaysTrack(data);
 
-                const user = await fetchUser();
-                setPoints(user.points);
+                if (points === 0) {
+                    const user = await fetchUser();
+                    setPoints(user.points);
+                }
+
 
             } catch (err) {
+                console.log(err);
                 setError('読み込みに失敗しました');
             } finally {
                 setLoading(false);

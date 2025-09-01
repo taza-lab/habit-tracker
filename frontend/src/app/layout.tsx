@@ -3,10 +3,11 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider, CssBaseline } from '@mui/material';
+import { usePathname } from "next/navigation";
 import theme from './theme';
-import Layout from "./components/Layout";
-import { PointProvider } from './context/PointContext';
-import { AlertProvider } from './context/AlertContext';
+import Layout from "@/components/Layout";
+import { PointProvider } from '@/context/PointContext';
+import { AlertProvider } from '@/context/AlertContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,6 +24,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+  const pathname = usePathname();
+  const noLayoutPaths = ["/login", "/signup"];
+  const isLoginedPath = !noLayoutPaths.includes(pathname);
+
   return (
     <html lang="">
       <head>
@@ -38,7 +44,7 @@ export default function RootLayout({
           <CssBaseline />
           <PointProvider>
             <AlertProvider>
-              <Layout>{children}</Layout>
+              <Layout showLoginedLayout={isLoginedPath}>{children}</Layout>
             </AlertProvider>
           </PointProvider>
         </ThemeProvider>

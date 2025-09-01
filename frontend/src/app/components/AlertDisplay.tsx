@@ -1,7 +1,7 @@
 'use client';
 
 import { Alert, Box, Zoom } from '@mui/material';
-import { useAlert } from '../context/AlertContext';
+import { useAlert } from '@/context/AlertContext';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
 import WarningRoundedIcon from '@mui/icons-material/WarningRounded';
@@ -37,7 +37,7 @@ export function AlertDisplay() {
         <Box
             sx={{
                 position: 'fixed',
-                bottom: 70, // フッターの上に表示
+                bottom: 80, // フッターの上に表示
                 zIndex: 1300,
                 width: '100%',
                 maxWidth: 600,

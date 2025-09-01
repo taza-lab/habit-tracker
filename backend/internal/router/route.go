@@ -3,10 +3,12 @@ package router
 import (
 	"net/http"
 	"time"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
 	"backend/internal/handler"
+	"backend/internal/middleware"
 )
 
 func NewRouter() *gin.Engine {
@@ -14,9 +16,9 @@ func NewRouter() *gin.Engine {
 
 	// CORSミドルウェア追加 TODO:パッケージ分ける
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"}, // ← Next.js側のURL TODO: 環境変数
+		AllowOrigins:     []string{os.Getenv("NEXT_BASE_URL")},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
@@ -30,19 +32,26 @@ func NewRouter() *gin.Engine {
 		})
 	})
 
-	// ユーザー
-	r.GET("user", handler.GetUser) // TODO: ログイン, ユーザー取得を合わせて行う
+	// ログイン
+	r.POST("/login", handler.Login)
 
-	// 習慣トラック
-	r.GET("/daily_track/:date", handler.GetDailyTrack)
-	r.POST("/daily_track/done", handler.UpdateDoneDailyTrack)
+	protected := r.Group("/auth")
+	protected.Use(middleware.AuthMiddleware())
+	{
+		// ユーザー
+		protected.GET("/user", handler.GetUser) 
 
-	// 習慣の管理
-    r.GET("/habit/list", handler.GetHabitList)
-	r.GET("/habit/:id", handler.GetHabit)
-	r.POST("/habit/register", handler.RegisterHabit)
-	r.PUT("/habit/:id/update", handler.UpdateHabit)
-	r.DELETE("/habit/:id/delete", handler.DeleteHabit)
+		// 習慣トラック
+		protected.GET("/daily_track/:date", handler.GetDailyTrack)
+		protected.POST("/daily_track/done", handler.UpdateDoneDailyTrack)
+
+		// 習慣の管理
+		protected.GET("/habit/list", handler.GetHabitList)
+		protected.GET("/habit/:id", handler.GetHabit)
+		protected.POST("/habit/register", handler.RegisterHabit)
+		protected.PUT("/habit/:id/update", handler.UpdateHabit)
+		protected.DELETE("/habit/:id/delete", handler.DeleteHabit)
+	}
 
     return r
 }

@@ -5,14 +5,14 @@ import (
 	"time"
 
     "github.com/gin-gonic/gin"
-	"backend/internal/domain/model"
+	"backend/internal/domain/habit_track"
 )
 
 // メモ
 // gin.H = map[string]interface{}
 
 func GetHabitList(c *gin.Context) {
-	var data = []model.Habit{
+	var data = []habit_track.Habit{
 		{Id: 1, Name: "朝ヨガ"},
 		{Id: 2, Name: "勉強"},
 	}
@@ -21,7 +21,7 @@ func GetHabitList(c *gin.Context) {
 }
 
 func GetHabit(c *gin.Context) {
-	var data = model.Habit{Id: 1, Name: "朝ヨガ"}
+	var data = habit_track.Habit{Id: 1, Name: "朝ヨガ"}
 
 	c.JSON(http.StatusOK, data)
 }
