@@ -10,10 +10,44 @@ import (
 	userModel "backend/internal/domain/user"
 )
 
-// 認証情報 TODO: リクエスト定義する
+type SignUpRequest struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	ConfirmPassword string `json:"confirm_password" binding:"required"`
+}
+
 type LoginRequest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
+}
+
+func SignUp(c *gin.Context) {
+	var signUpRequest SignUpRequest
+
+	// リクエスト内容の検証・構造体バインド
+	if err := c.ShouldBindJSON(&signUpRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	if req.Password != req.ConfirmPassword {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "確認用パスワードが一致しません。"})
+        return
+    }
+
+	// TODO: 同一usernameが登録済みの場合のチェック
+	if (signUpRequest.Username == "existuser") {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "使用できないユーザーネームです。"})
+		return
+	}
+
+	// TODO: ユーザーID生成
+	userId := "123ABC"
+	user := userModel.User{Id: userId, Username: signUpRequest.Username, Points: 0}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user": user,
+	})
 }
 
 func Login(c *gin.Context) {
@@ -69,3 +103,4 @@ func GetUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, data)
 }
+

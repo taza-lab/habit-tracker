@@ -2,11 +2,8 @@ package router
 
 import (
 	"net/http"
-	"time"
-	"os"
-
+	
 	"github.com/gin-gonic/gin"
-	"github.com/gin-contrib/cors"
 	"backend/internal/handler"
 	"backend/internal/middleware"
 )
@@ -14,15 +11,7 @@ import (
 func NewRouter() *gin.Engine {
     r := gin.Default()
 
-	// CORSミドルウェア追加 TODO:パッケージ分ける
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{os.Getenv("NEXT_BASE_URL")},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
+	r.Use(middleware.CorsMiddleware())
 
 	// ヘルスチェック
 	r.GET("/health", func (c *gin.Context) {
@@ -31,6 +20,9 @@ func NewRouter() *gin.Engine {
 
 		})
 	})
+
+	// サインアップ
+	r.POST("/signup", handler.SignUp)
 
 	// ログイン
 	r.POST("/login", handler.Login)
