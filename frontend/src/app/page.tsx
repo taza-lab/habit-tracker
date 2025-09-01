@@ -7,13 +7,18 @@ import PageTitle from './components/PageTitle';
 import CheckBox from './components/DailyTrack/CheckBox';
 import { DailyTrack } from './types/daily-track';
 import { fetchTodaysTrack, todaysHabitDone } from './features/daily-track/api';
+import { fetchUser } from './features/user/api';
+import { usePoint } from './context/PointContext';
+import { useAlert } from './context/AlertContext';
 
-export default function HabitManage() {
+export default function Home() {
     // 定数定義
     const [todaysTrack, setTodaysTrack] = useState<DailyTrack>({ date: '', habits: [] }); //初期値をundefinedにしないために空のtypeをセット
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
+    const { setPoints, addPoints } = usePoint();
+    const { showAlert } = useAlert();
 
     // 初期表示
     useEffect(() => {
@@ -21,12 +26,17 @@ export default function HabitManage() {
             try {
                 const data = await fetchTodaysTrack();
                 setTodaysTrack(data);
+
+                const user = await fetchUser();
+                setPoints(user.points);
+
             } catch (err) {
                 setError('読み込みに失敗しました');
             } finally {
                 setLoading(false);
             }
         };
+
         loadTodaysTrack();
     }, []);
 
@@ -46,13 +56,22 @@ export default function HabitManage() {
                 }
                 return item;
             });
-
             setTodaysTrack({ ...todaysTrack, habits: updatedHabits })
 
-            // TODO: ポイント更新
+            // ポイント獲得
+            addPoints(Number(process.env.NEXT_PUBLIC_HABIT_DONE_POINT));
 
-            // TODO: 全部チェックしたらアニメーション表示
+            // 全部チェックしたらさらにポイント
+            const allDone = todaysTrack.habits.filter((item) => {
+                return !item.isDone;
+            }).length === 1;
+            if (allDone) {
+                addPoints(Number(process.env.NEXT_PUBLIC_HABIT_ALL_DONE_POINT));
+            }
 
+            if (allDone) {
+                showAlert('all Done!', 'success');
+            }
 
         } catch (err) {
             setError('更新に失敗しました');

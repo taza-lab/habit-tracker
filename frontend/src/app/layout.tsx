@@ -5,6 +5,8 @@ import "./globals.css";
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import theme from './theme';
 import Layout from "./components/Layout";
+import { PointProvider } from './context/PointContext';
+import { AlertProvider } from './context/AlertContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,7 +36,11 @@ export default function RootLayout({
       >
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <Layout>{children}</Layout>
+          <PointProvider>
+            <AlertProvider>
+              <Layout>{children}</Layout>
+            </AlertProvider>
+          </PointProvider>
         </ThemeProvider>
       </body>
     </html>
