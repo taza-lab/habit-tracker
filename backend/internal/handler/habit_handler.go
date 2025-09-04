@@ -5,7 +5,7 @@ import (
 	"time"
 
     "github.com/gin-gonic/gin"
-	"backend/internal/domain/habit_track"
+	"backend/internal/domain/model/habit_track"
 )
 
 // メモ

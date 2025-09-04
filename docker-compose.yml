@@ -22,5 +22,18 @@ services:
     networks:
       - app-net
 
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-net 
+
 networks:
   app-net:
+
+volumes:
+  mongo-data:
