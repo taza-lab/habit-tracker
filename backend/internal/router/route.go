@@ -8,7 +8,14 @@ import (
 	"backend/internal/middleware"
 )
 
-func NewRouter() *gin.Engine {
+// 必要な依存性をまとめた構造体
+type RouterConfig struct {
+    UserHandler *handler.UserHandler
+    HabitHandler *handler.HabitHandler
+    DailyTrackHandler *handler.DailyTrackHandler
+}
+
+func NewRouter(config *RouterConfig) *gin.Engine {
     r := gin.Default()
 
 	r.Use(middleware.CorsMiddleware())
@@ -22,27 +29,27 @@ func NewRouter() *gin.Engine {
 	})
 
 	// サインアップ
-	r.POST("/signup", handler.SignUp)
+	r.POST("/signup", config.UserHandler.SignUp)
 
 	// ログイン
-	r.POST("/login", handler.Login)
+	r.POST("/login", config.UserHandler.Login)
 
 	protected := r.Group("/auth")
 	protected.Use(middleware.AuthMiddleware())
 	{
 		// ユーザー
-		protected.GET("/user", handler.GetUser) 
+		protected.GET("/user", config.UserHandler.GetUser) 
 
 		// 習慣トラック
-		protected.GET("/daily_track/:date", handler.GetDailyTrack)
-		protected.POST("/daily_track/done", handler.UpdateDoneDailyTrack)
+		protected.GET("/daily_track/:date", config.DailyTrackHandler.GetDailyTrack)
+		protected.POST("/daily_track/done", config.DailyTrackHandler.UpdateDoneDailyTrack)
 
 		// 習慣の管理
-		protected.GET("/habit/list", handler.GetHabitList)
-		protected.GET("/habit/:id", handler.GetHabit)
-		protected.POST("/habit/register", handler.RegisterHabit)
-		protected.PUT("/habit/:id/update", handler.UpdateHabit)
-		protected.DELETE("/habit/:id/delete", handler.DeleteHabit)
+		protected.GET("/habit/list", config.HabitHandler.GetHabitList)
+		protected.GET("/habit/:id", config.HabitHandler.GetHabit)
+		protected.POST("/habit/register", config.HabitHandler.RegisterHabit)
+		protected.PUT("/habit/:id/update", config.HabitHandler.UpdateHabit)
+		protected.DELETE("/habit/:id/delete", config.HabitHandler.DeleteHabit)
 	}
 
     return r
