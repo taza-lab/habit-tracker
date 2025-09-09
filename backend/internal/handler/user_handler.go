@@ -7,7 +7,7 @@ import (
 
     "github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
-	userModel "backend/internal/domain/user"
+	userModel "backend/internal/domain/model/user"
 )
 
 type SignUpRequest struct {
