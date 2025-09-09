@@ -25,6 +25,7 @@ export default function Home() {
         const loadTodaysTrack = async () => {
             try {
                 const data = await fetchTodaysTrack();
+                console.log(data);
                 setTodaysTrack(data);
 
                 if (points === 0) {

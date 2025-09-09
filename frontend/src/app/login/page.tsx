@@ -26,7 +26,7 @@ export default function AuthPage() {
     return (
         <Container component="main" maxWidth="xs">
             {showLogin && !showSignup
-                ? <LoginBox success={success} switchToSignup={switchToSignup} />
+                ? <LoginBox success={success} setSuccessMessage={setSuccess} switchToSignup={switchToSignup} />
                 : <SignUpBox setSuccessMessage={setSuccess} switchToLogin={switchToLogin} />
             }
         </Container>
