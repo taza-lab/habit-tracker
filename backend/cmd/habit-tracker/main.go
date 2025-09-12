@@ -41,7 +41,7 @@ func main() {
 	db := dbClient.Client().Database(dbName)
     userRepo := repositoryImpl.NewUserRepository(db.Collection("user"))
     habitRepo := repositoryImpl.NewHabitRepository(db.Collection("habits"))
-    dailyTrackRepo := repositoryImpl.NewHabitTrackRepository(db.Collection("daily_track"))
+    dailyTrackRepo := repositoryImpl.NewDailyTrackRepository(db.Collection("daily_track"))
 
     // 2. 各ハンドラーを生成し、対応するリポジトリを注入
     userHandler := handler.NewUserHandler(userRepo)

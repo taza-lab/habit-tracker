@@ -4,27 +4,26 @@ import (
 	"net/http"
 
     "github.com/gin-gonic/gin"
-	"backend/internal/domain/model/habit_track"
-	"backend/internal/domain/model/habit"
+	"backend/internal/domain/model/daily_track"
 	"backend/internal/domain/repository"
 )
 
 type DailyTrackHandler struct {
-	habitTrackRepo repository.HabitTrackRepository
+	dailyTrackRepo repository.DailyTrackRepository
 }
 
-func NewDailyTrackHandler(repo repository.HabitTrackRepository) *DailyTrackHandler {
+func NewDailyTrackHandler(repo repository.DailyTrackRepository) *DailyTrackHandler {
 	return &DailyTrackHandler{
-		habitTrackRepo: repo,
+		dailyTrackRepo: repo,
 	}
 }
 
 func (h *DailyTrackHandler) GetDailyTrack(c *gin.Context) {
-	var data = habit_track.DailyTrack{
+	var data = daily_track.DailyTrack{
 		Date: c.Param("date"),
-		Habits: []habit_track.HabitStatus{
-			{Habit: habit.Habit{Id: 1, Name: "朝ヨガ"}, IsDone: false},
-			{Habit: habit.Habit{Id: 2, Name: "勉強"}, IsDone: false},
+		HabitStatuses: []daily_track.HabitStatus{
+			{HabitId: "1", IsDone: false},
+			{HabitId: "2", IsDone: false},
 		},
 	}
 
