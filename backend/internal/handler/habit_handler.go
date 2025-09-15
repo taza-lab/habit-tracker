@@ -1,12 +1,19 @@
 package handler
 
-import (
-	"net/http"
-	"time"
+// handlerの規約
+// フロントで表示するメッセージはここに定義
+// リポジトリからのエラーはlog.Printf("[ERROR] ~")でそのまま出力
 
-    "github.com/gin-gonic/gin"
+import (
+	"errors"
+	"log"
+	"net/http"
+
+	"backend/internal/domain/common"
 	"backend/internal/domain/model/habit"
 	"backend/internal/domain/repository"
+
+	"github.com/gin-gonic/gin"
 )
 
 type HabitHandler struct {
@@ -19,19 +26,25 @@ func NewHabitHandler(repo repository.HabitRepository) *HabitHandler {
 	}
 }
 
+// TODO: requestパッケージ作成
+type HabitRequest struct {
+	Id   string `json:"id"   binding:"required"`
+	Name string `json:"name" binding:"required"`
+}
+
 // メモ
 // gin.H = map[string]interface{}
 
 func (h *HabitHandler) GetHabitList(c *gin.Context) {
-	habits, err := h.habitRepo.FetchAll()
+
+	userId := getUserId(c)
+	habits, err := h.habitRepo.FetchAll(userId)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "error"})
 		return
 	}
 
-	// FetchAll() が正常に完了したが、結果がnilだった場合
-	// クライアントに空のJSON配列を返す
 	if habits == nil {
 		habits = make([]habit.Habit, 0)
 	}
@@ -39,20 +52,73 @@ func (h *HabitHandler) GetHabitList(c *gin.Context) {
 	c.JSON(http.StatusOK, habits)
 }
 
-func (h *HabitHandler) GetHabit(c *gin.Context) {
-	var data = habit.Habit{Id: 1, Name: "朝ヨガ"}
-
-	c.JSON(http.StatusOK, data)
-}
-
 func (h *HabitHandler) RegisterHabit(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "success", "id": time.Now().Format("20060102150405")})
+	userId := getUserId(c)
+
+	// バリデーション
+	var habitRequest HabitRequest
+	if err := c.ShouldBindJSON(&habitRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+		return
+	}
+
+	// 新規登録
+	newHabit := habit.Habit{UserId: userId, Name: habitRequest.Name}
+	habit, err := h.habitRepo.Register(&newHabit)
+
+	if err != nil {
+		if errors.Is(err, common.ErrAlreadyExists) {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "すでに登録済みの習慣です。"})
+			return
+		}
+
+		log.Printf("[ERROR] %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "エラーが発生しました。"})
+		return
+	}
+
+	// TODO: 今日のdaily-trackに追加
+
+	c.JSON(http.StatusOK, gin.H{"message": "success", "id": habit.Id})
 }
 
 func (h *HabitHandler) UpdateHabit(c *gin.Context) {
+	// TODO: 今後使うから残しておく
 	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }
 
 func (h *HabitHandler) DeleteHabit(c *gin.Context) {
+	id := c.Param("id")
+
+	// idが空文字列の場合のチェック
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "IDは必須です。"})
+		return
+	}
+
+	// 削除
+	err := h.habitRepo.Delete(id)
+
+	if err != nil {
+		log.Printf("[ERROR] %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "エラーが発生しました。"})
+		return
+	}
+
+	// TODO: !isDoneだったら今日のdaily-trackから削除
+
 	c.JSON(http.StatusOK, gin.H{"message": "success"})
+}
+
+func getUserId(c *gin.Context) string {
+	// ミドルウェアで設定された user_id を取得
+	// NOTE: user_idの検証はミドルウェアに実装
+	var userId string
+	loginedUserId, exists := c.Get("user_id")
+	if !exists {
+		return ""
+	}
+
+	userId = loginedUserId.(string)
+	return userId
 }

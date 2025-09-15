@@ -46,7 +46,6 @@ func NewRouter(config *RouterConfig) *gin.Engine {
 
 		// 習慣の管理
 		protected.GET("/habit/list", config.HabitHandler.GetHabitList)
-		protected.GET("/habit/:id", config.HabitHandler.GetHabit)
 		protected.POST("/habit/register", config.HabitHandler.RegisterHabit)
 		protected.PUT("/habit/:id/update", config.HabitHandler.UpdateHabit)
 		protected.DELETE("/habit/:id/delete", config.HabitHandler.DeleteHabit)
