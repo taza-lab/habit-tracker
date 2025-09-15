@@ -10,22 +10,24 @@ package repositoryImpl
 
 import (
 	"context"
-	"time"
 	"fmt"
 	"log"
+	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"backend/internal/domain/common"
 	"backend/internal/domain/model/habit"
 	"backend/internal/domain/repository"
-	"backend/internal/domain/common"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // DBに保存するための内部モデル
 type habitDB struct {
-    ID   primitive.ObjectID `bson:"_id,omitempty"`
-    Name string             `bson:"name"`
+	ID     primitive.ObjectID `bson:"_id,omitempty"`
+	UserId string             `bson:"user_id"`
+	Name   string             `bson:"name"`
 }
 
 // HabitRepository はMongoDBのusersコレクションにアクセスします
@@ -40,17 +42,15 @@ func NewHabitRepository(collection *mongo.Collection) repository.HabitRepository
 	}
 }
 
-//
 // 習慣一覧取得
-//
-func (r *HabitRepository) FetchAll() ([]habit.Habit, error) {
+func (r *HabitRepository) FetchAll(userId string) ([]habit.Habit, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	// Find()で全件取得
-	cursor, err := r.collection.Find(ctx, bson.M{})
+	cursor, err := r.collection.Find(ctx, bson.M{"user_id": userId})
 	if err != nil {
-		log.Printf("[ERROR] HabitRepository.FetchAll() failed to collection.Find : %w", err)
+		log.Printf("[ERROR] HabitRepository.FetchAll() failed to collection.Find (user_id: %s): %w", userId, err)
 
 		// NOTE: nilスライスは要素が一つもない有効なスライスと認識される
 		return nil, fmt.Errorf("failed to habit fetch all: %w", err)
@@ -67,17 +67,15 @@ func (r *HabitRepository) FetchAll() ([]habit.Habit, error) {
 	return habits, nil
 }
 
-//
 // 習慣登録
-//
 func (r *HabitRepository) Register(habit *habit.Habit) (*habit.Habit, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	// nameの重複チェック
 	var existingHabitDB habitDB
-	err := r.collection.FindOne(ctx, bson.M{"name": habit.Name}).Decode(&existingHabitDB)
-	
+	err := r.collection.FindOne(ctx, bson.M{"user_id": habit.UserId, "name": habit.Name}).Decode(&existingHabitDB)
+
 	if err == nil {
 		// すでに同名のhabitが存在する場合はエラーを返す
 		return nil, common.ErrAlreadyExists
@@ -89,12 +87,13 @@ func (r *HabitRepository) Register(habit *habit.Habit) (*habit.Habit, error) {
 
 	// DBに保存するためのモデルに変換
 	habitDB := habitDB{
-		Name :habit.Name,
+		UserId: habit.UserId,
+		Name:   habit.Name,
 	}
 
 	// 新規登録
 	result, err := r.collection.InsertOne(ctx, habitDB)
-	
+
 	if err != nil {
 		log.Printf("[ERROR] HabitRepository.Register() failed to collection.InsertOne (data: %+v) : %w", habitDB, err)
 		return nil, fmt.Errorf("failed to register habit: %w", err)
@@ -107,10 +106,8 @@ func (r *HabitRepository) Register(habit *habit.Habit) (*habit.Habit, error) {
 	return habit, nil
 }
 
-//
 // 習慣削除
-//
-func (r *HabitRepository) Delete(id string) (error) {
+func (r *HabitRepository) Delete(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -131,8 +128,8 @@ func (r *HabitRepository) Delete(id string) (error) {
 	}
 
 	if result.DeletedCount == 0 {
-        return common.ErrNotFound
-    }
+		return common.ErrNotFound
+	}
 
 	return nil
 }

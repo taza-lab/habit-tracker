@@ -5,7 +5,7 @@ import (
 )
 
 type HabitRepository interface {
-	FetchAll() ([]habit.Habit, error)
+	FetchAll(userId string) ([]habit.Habit, error)
 	Register(habit *habit.Habit) (*habit.Habit, error)
-	Delete(id string) (error)
+	Delete(id string) error
 }

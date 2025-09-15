@@ -5,14 +5,15 @@ package handler
 // リポジトリからのエラーはlog.Printf("[ERROR] ~")でそのまま出力
 
 import (
-	"net/http"
-	"log"
 	"errors"
+	"log"
+	"net/http"
 
-    "github.com/gin-gonic/gin"
+	"backend/internal/domain/common"
 	"backend/internal/domain/model/habit"
 	"backend/internal/domain/repository"
-	"backend/internal/domain/common"
+
+	"github.com/gin-gonic/gin"
 )
 
 type HabitHandler struct {
@@ -35,7 +36,9 @@ type HabitRequest struct {
 // gin.H = map[string]interface{}
 
 func (h *HabitHandler) GetHabitList(c *gin.Context) {
-	habits, err := h.habitRepo.FetchAll()
+
+	userId := getUserId(c)
+	habits, err := h.habitRepo.FetchAll(userId)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "error"})
@@ -50,6 +53,7 @@ func (h *HabitHandler) GetHabitList(c *gin.Context) {
 }
 
 func (h *HabitHandler) RegisterHabit(c *gin.Context) {
+	userId := getUserId(c)
 
 	// バリデーション
 	var habitRequest HabitRequest
@@ -59,7 +63,7 @@ func (h *HabitHandler) RegisterHabit(c *gin.Context) {
 	}
 
 	// 新規登録
-	newHabit := habit.Habit{Name: habitRequest.Name}
+	newHabit := habit.Habit{UserId: userId, Name: habitRequest.Name}
 	habit, err := h.habitRepo.Register(&newHabit)
 
 	if err != nil {
@@ -87,10 +91,10 @@ func (h *HabitHandler) DeleteHabit(c *gin.Context) {
 	id := c.Param("id")
 
 	// idが空文字列の場合のチェック
-    if id == "" {
-        c.JSON(http.StatusBadRequest, gin.H{"message": "IDは必須です。"})
-        return
-    }
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "IDは必須です。"})
+		return
+	}
 
 	// 削除
 	err := h.habitRepo.Delete(id)
@@ -104,4 +108,17 @@ func (h *HabitHandler) DeleteHabit(c *gin.Context) {
 	// TODO: !isDoneだったら今日のdaily-trackから削除
 
 	c.JSON(http.StatusOK, gin.H{"message": "success"})
+}
+
+func getUserId(c *gin.Context) string {
+	// ミドルウェアで設定された user_id を取得
+	// NOTE: user_idの検証はミドルウェアに実装
+	var userId string
+	loginedUserId, exists := c.Get("user_id")
+	if !exists {
+		return ""
+	}
+
+	userId = loginedUserId.(string)
+	return userId
 }
