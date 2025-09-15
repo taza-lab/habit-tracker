@@ -1,7 +1,11 @@
 package repository
 
-// UserRepository はユーザー関連のDB操作を抽象化します
+import (
+	"backend/internal/domain/model/user"
+)
+
 type UserRepository interface {
-	FindAll() ([]User, error)
-	// ...
+	Find(id string) (*user.User, error)
+	FindByUserName(username string) (*user.User, error)
+	Register(user *user.User) (*user.User, error)
 }

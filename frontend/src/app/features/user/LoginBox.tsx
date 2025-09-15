@@ -17,10 +17,11 @@ import { usePoint } from '@/context/PointContext';
 
 interface LoginBoxProps {
     success: string | null,
+    setSuccessMessage: React.Dispatch<React.SetStateAction<string | null>>,
     switchToSignup: () => void;
 }
 
-export default function LoginBox({ success, switchToSignup }: LoginBoxProps) {
+export default function LoginBox({ success, setSuccessMessage, switchToSignup }: LoginBoxProps) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -45,7 +46,8 @@ export default function LoginBox({ success, switchToSignup }: LoginBoxProps) {
             router.push("/")
 
         } catch (err) {
-            setError('Login faild');
+            setError(err.message);
+            setSuccessMessage('');
         } finally {
             setLoading(false);
         }
