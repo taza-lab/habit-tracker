@@ -7,13 +7,12 @@ import PageTitle from '@/components/PageTitle';
 import CheckBox from '@/components/DailyTrack/CheckBox';
 import { DailyTrack } from '@/types/daily-track';
 import { fetchTodaysTrack, todaysHabitDone } from '@/features/daily-track/api';
-import { fetchUser } from '@/features/user/api';
 import { usePoint } from '@/context/PointContext';
 import { useAlert } from '@/context/AlertContext';
 
 export default function Home() {
     // 定数定義
-    const [todaysTrack, setTodaysTrack] = useState<DailyTrack>({ date: '', habits: [] }); //初期値をundefinedにしないために空のtypeをセット
+    const [todaysTrack, setTodaysTrack] = useState<DailyTrack>({ id: '', userId: '', date: '', habitStatuses: [] }); //初期値をundefinedにしないために空のtypeをセット
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
@@ -25,14 +24,13 @@ export default function Home() {
         const loadTodaysTrack = async () => {
             try {
                 const data = await fetchTodaysTrack();
-                console.log(data);
                 setTodaysTrack(data);
 
-                if (points === 0) {
-                    const user = await fetchUser();
-                    setPoints(user.points);
-                }
-
+                // TODO: ログイン時に取得した値を持ち回りたい。このページが読み込まれるたびにAPI叩くのよくない。セッション管理かな？
+                // if (points === 0) {
+                //     const user = await fetchUser();
+                //     setPoints(user.points);
+                // }
 
             } catch (err) {
                 console.log(err);
@@ -49,30 +47,27 @@ export default function Home() {
     if (error) return <p>{error}</p>;
 
     // チェック
-    const handleHabitDoneCheck = async (targetId: string) => {
+    const handleHabitDoneCheck = async (targetHabitId: string) => {
         try {
             // API実行
-            await todaysHabitDone(targetId);
+            await todaysHabitDone(targetHabitId);
 
             // データ更新
-            const updatedHabits = todaysTrack.habits.map((item) => {
-                if (item.habit.id === targetId) {
+            const updatedHabitStatuses = todaysTrack.habitStatuses.map((item) => {
+                if (item.habitId === targetHabitId) {
                     return { ...item, isDone: true };
                 }
                 return item;
             });
-            setTodaysTrack({ ...todaysTrack, habits: updatedHabits })
+            setTodaysTrack({ ...todaysTrack, habitStatuses: updatedHabitStatuses })
 
-            // ポイント獲得
+            // ポイント付与
             addPoints(Number(process.env.NEXT_PUBLIC_HABIT_DONE_POINT));
 
-            // 全部チェックしたらさらにポイント
-            const allDone = todaysTrack.habits.filter((item) => {
+            // 全部チェックしたらメッセージ表示
+            const allDone = todaysTrack.habitStatuses.filter((item) => {
                 return !item.isDone;
             }).length === 1;
-            if (allDone) {
-                addPoints(Number(process.env.NEXT_PUBLIC_HABIT_ALL_DONE_POINT));
-            }
 
             if (allDone) {
                 showAlert('all Done!', 'success');
@@ -87,7 +82,16 @@ export default function Home() {
         <div style={{ padding: '2rem' }}>
             <PageTitle title={todaysTrack.date ?? ''} />
             <List>
-                {todaysTrack?.habits.length === 0 ? (
+                {todaysTrack && todaysTrack.habitStatuses && todaysTrack.habitStatuses.length > 0 ? (
+                    todaysTrack.habitStatuses.map(track => (
+                        <ListItem key={track.habitId}>
+                            <ListItemIcon onClick={() => handleHabitDoneCheck(track.habitId)}>
+                                <CheckBox isChecked={track.isDone} />
+                            </ListItemIcon>
+                            <ListItemText primary={track.habitName} />
+                        </ListItem>
+                    ))
+                ) : (
                     <>
                         <ListItem>
                             <ListItemText primary="習慣が登録されていません。" />
@@ -97,15 +101,6 @@ export default function Home() {
                             <Button variant="contained" color="primary" onClick={() => router.push("/habit-manage")}>習慣を登録する</Button>
                         </ListItem>
                     </>
-                ) : (
-                    todaysTrack?.habits.map(track => (
-                        <ListItem key={track.habit.id}>
-                            <ListItemIcon onClick={() => handleHabitDoneCheck(track.habit.id)}>
-                                <CheckBox isChecked={track.isDone} />
-                            </ListItemIcon>
-                            <ListItemText primary={track.habit.name} />
-                        </ListItem>
-                    ))
                 )}
             </List>
         </div>

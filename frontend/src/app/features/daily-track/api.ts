@@ -9,7 +9,19 @@ export async function fetchTodaysTrack(): Promise<DailyTrack> {
 
     const res = await fetch(`${BASE_URL}/auth/daily_track/${today}`, { headers: headers });
     if (!res.ok) throw new Error('Failed to fetch todays track');
-    return res.json();
+
+    const apiData = await res.json();
+    
+    return {
+        id: apiData.id,
+        userId: apiData.user_id,
+        date: apiData.date,
+        habitStatuses: apiData.habit_statuses.map(status => ({
+            habitId: status.habit_id,
+            habitName: status.habit_name,
+            isDone: status.is_done,
+        })),
+    };
 }
 
 export async function todaysHabitDone(habitId: string): Promise<void> {

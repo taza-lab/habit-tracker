@@ -1,9 +1,10 @@
-import { Habit } from './habit';
-
 export type DailyTrack = {
+    id: string,
+    userId: string,
     date: string,
-    habits: {
-        habit: Habit,
+    habitStatuses: {
+        habitId: string,
+        habitName: string,
         isDone: boolean
     }[]
 }
