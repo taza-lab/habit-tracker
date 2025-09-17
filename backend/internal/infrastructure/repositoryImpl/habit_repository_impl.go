@@ -43,7 +43,7 @@ func NewHabitRepository(collection *mongo.Collection) repository.HabitRepository
 }
 
 // 習慣一覧取得
-func (r *HabitRepository) FetchAll(userId string) ([]habit.Habit, error) {
+func (r *HabitRepository) FetchAll(userId string) ([]*habit.Habit, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -58,10 +58,16 @@ func (r *HabitRepository) FetchAll(userId string) ([]habit.Habit, error) {
 	defer cursor.Close(ctx)
 
 	// 結果を格納するスライス
-	var habits []habit.Habit
-	if err = cursor.All(ctx, &habits); err != nil {
+	var habitDBs []habitDB
+	if err = cursor.All(ctx, &habitDBs); err != nil {
 		log.Printf("[ERROR] HabitRepository.FetchAll() failed to cursor.All : %w", err)
 		return nil, fmt.Errorf("failed to decode documents from cursor: %w", err)
+	}
+
+	var habits []*habit.Habit
+	for _, habitDB := range habitDBs {
+		habit := convertToHabit(&habitDB)
+		habits = append(habits, habit)
 	}
 
 	return habits, nil
@@ -132,4 +138,13 @@ func (r *HabitRepository) Delete(id string) error {
 	}
 
 	return nil
+}
+
+// DBモデルをドメインモデルに変換
+func convertToHabit(habitDB *habitDB) *habit.Habit {
+	return &habit.Habit{
+		Id:     habitDB.ID.Hex(),
+		UserId: habitDB.UserId,
+		Name:   habitDB.Name,
+	}
 }
