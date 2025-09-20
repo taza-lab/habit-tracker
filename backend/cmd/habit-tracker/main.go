@@ -50,7 +50,7 @@ func main() {
 
 	// 2. 各ハンドラーを生成し、対応するリポジトリを注入
 	userHandler := handler.NewUserHandler(userRepo)
-	habitHandler := handler.NewHabitHandler(habitRepo)
+	habitHandler := handler.NewHabitHandler(habitRepo, dailyTrackRepo)
 	dailyTrackHandler := handler.NewDailyTrackHandler(dailyTrackRepo, habitRepo, userRepo)
 
 	// 3. ルーター設定のコンフィグを作成

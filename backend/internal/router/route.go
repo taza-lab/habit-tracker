@@ -2,29 +2,29 @@ package router
 
 import (
 	"net/http"
-	
-	"github.com/gin-gonic/gin"
+
 	"backend/internal/handler"
 	"backend/internal/middleware"
+
+	"github.com/gin-gonic/gin"
 )
 
 // 必要な依存性をまとめた構造体
 type RouterConfig struct {
-    UserHandler *handler.UserHandler
-    HabitHandler *handler.HabitHandler
-    DailyTrackHandler *handler.DailyTrackHandler
+	UserHandler       *handler.UserHandler
+	HabitHandler      *handler.HabitHandler
+	DailyTrackHandler *handler.DailyTrackHandler
 }
 
 func NewRouter(config *RouterConfig) *gin.Engine {
-    r := gin.Default()
+	r := gin.Default()
 
 	r.Use(middleware.CorsMiddleware())
 
 	// ヘルスチェック
-	r.GET("/health", func (c *gin.Context) {
+	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-				"message": "OK",
-
+			"message": "OK",
 		})
 	})
 
@@ -38,7 +38,7 @@ func NewRouter(config *RouterConfig) *gin.Engine {
 	protected.Use(middleware.AuthMiddleware())
 	{
 		// ユーザー
-		protected.GET("/user", config.UserHandler.GetUser) 
+		protected.GET("/user", config.UserHandler.GetUser)
 
 		// 習慣トラック
 		protected.GET("/daily_track/:date", config.DailyTrackHandler.GetDailyTrack)
@@ -47,9 +47,8 @@ func NewRouter(config *RouterConfig) *gin.Engine {
 		// 習慣の管理
 		protected.GET("/habit/list", config.HabitHandler.GetHabitList)
 		protected.POST("/habit/register", config.HabitHandler.RegisterHabit)
-		protected.PUT("/habit/:id/update", config.HabitHandler.UpdateHabit)
 		protected.DELETE("/habit/:id/delete", config.HabitHandler.DeleteHabit)
 	}
 
-    return r
+	return r
 }
