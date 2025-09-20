@@ -104,6 +104,7 @@ export default function HabitManage() {
                 size="medium"
                 color="secondary"
                 aria-label="add"
+                disabled={habits.length >= 5}
                 sx={{
                     position: "fixed",
                     bottom: 100,
