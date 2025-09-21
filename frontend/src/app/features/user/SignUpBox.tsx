@@ -50,7 +50,7 @@ export default function AuthPage({ setSuccessMessage, switchToLogin }: LoginBoxP
 
         try {
             // API実行
-            const data = await signup(username, password, confirmPassword);
+            signup(username, password, confirmPassword);
 
             // サインアップ成功ダイアログ表示
             setSuccessMessage('アカウント作成が成功しました。ログインしてください。');

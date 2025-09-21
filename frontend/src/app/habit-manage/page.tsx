@@ -7,14 +7,16 @@ import SentimentSatisfiedRoundedIcon from '@mui/icons-material/SentimentSatisfie
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import { fetchHabits, createHabit, deleteHabit } from '@/features/habit/api';
+import { useAuthApi } from '../hooks/useAuthApi';
 import { Habit } from '@/types/habit';
 import PageTitle from '@/components/PageTitle';
 
-type Mode = 'create' | 'edit' | 'delete';
+type Mode = 'create' | 'delete';
 
 export default function HabitManage() {
 
     // 定数定義
+    const { handleAuthApiCall } = useAuthApi();
     const [habits, setHabits] = useState<Habit[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -25,8 +27,10 @@ export default function HabitManage() {
     useEffect(() => {
         const loadHabits = async () => {
             try {
-                const data = await fetchHabits();
-                setHabits(data);
+                const data = await handleAuthApiCall(fetchHabits);
+                if (data) {
+                    setHabits(data);
+                }
             } catch (err) {
                 setError('読み込みに失敗しました');
             } finally {
@@ -52,12 +56,14 @@ export default function HabitManage() {
 
     // 新規登録送信
     const handleCreateSubmit = async (name: string) => {
-        const newHabit: Habit = { id: '0', name };
+        const newHabit: Habit = { id: '0', userId: '', name };
 
         try {
-            const result = await createHabit(newHabit);
-            newHabit.id = result.id;
-            setHabits([...habits, newHabit]);
+            const result = await handleAuthApiCall(() => createHabit(newHabit));
+            if (result) {
+                newHabit.id = result.id;
+                setHabits([...habits, newHabit]);
+            }
         } catch (err) {
             setError('登録に失敗しました');
         }
@@ -68,8 +74,9 @@ export default function HabitManage() {
     // 削除送信
     const handleDeleteSubmit = (id: string) => {
         try {
-            const result = deleteHabit(id);
+            handleAuthApiCall(() => deleteHabit(id));
             setHabits(prev => prev.filter(habit => habit.id !== id));
+            
         } catch (err) {
             setError('削除に失敗しました');
         }
@@ -101,7 +108,6 @@ export default function HabitManage() {
                 )}
             </List>
             <Fab
-                size="medium"
                 color="secondary"
                 aria-label="add"
                 disabled={habits.length >= 5}
@@ -109,11 +115,17 @@ export default function HabitManage() {
                     position: "fixed",
                     bottom: 100,
                     right: 30,
+                    width: 60,
+                    height: 60,
                 }}
             >
-                <AddIcon onClick={() => openModal('create')} />
+                <AddIcon
+                    sx={{
+                    fontSize: 36,
+                    }}
+                    onClick={() => openModal('create')}
+                />
             </Fab>
-
             {modalMode && (
                 <Modal
                     mode={modalMode}

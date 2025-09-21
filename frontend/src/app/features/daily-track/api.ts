@@ -1,42 +1,45 @@
 import { DailyTrack } from '@/types/daily-track';
-import { getAuthHeaders } from '@/lib/api';
+import { apiRequest } from '@/lib/api';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+// APIが返す生のデータ型を定義
+interface DailyTrackApiData {
+  id: string;
+  user_id: string;
+  date: string;
+  habit_statuses: {
+    habit_id: string;
+    habit_name: string;
+    is_done: boolean;
+  }[];
+}
 
 export async function fetchTodaysTrack(): Promise<DailyTrack> {
     const today = createTodayString();
-    const headers = getAuthHeaders();
 
-    const res = await fetch(`${BASE_URL}/auth/daily_track/${today}`, { headers: headers });
-    if (!res.ok) throw new Error('Failed to fetch todays track');
-
-    const apiData = await res.json();
+    const apiData = await apiRequest<DailyTrackApiData>(`auth/daily_track/${today}`);
     
     return {
         id: apiData.id,
         userId: apiData.user_id,
         date: apiData.date,
-        habitStatuses: apiData.habit_statuses.map(status => ({
+        habitStatuses: apiData.habit_statuses != null ? apiData.habit_statuses.map(status => ({
             habitId: status.habit_id,
             habitName: status.habit_name,
             isDone: status.is_done,
-        })),
+        })) : [],
     };
 }
 
 export async function todaysHabitDone(habitId: string): Promise<void> {
     const today = createTodayString();
-    const headers = getAuthHeaders();
 
-    const res = await fetch(
-        `${BASE_URL}/auth/daily_track/done`,
+    await apiRequest(
+        `auth/daily_track/done`, 
         {
             method: 'POST',
-            headers: headers,
             body: JSON.stringify({ date: today, habit_id: habitId })
         }
-    );
-    if (!res.ok) throw new Error('Failed to fetch todays track');
+    )
 }
 
 

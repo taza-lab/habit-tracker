@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container } from '@mui/material';
 import LoginBox from "@/features/user/LoginBox"
 import SignUpBox from "@/features/user/SignUpBox"
@@ -9,6 +9,12 @@ export default function AuthPage() {
     const [success, setSuccess] = useState<string | null>(null);
     const [showLogin, setShowLogin] = useState(true);
     const [showSignup, setShowSignup] = useState(false);
+
+    // 初期表示
+    useEffect(() => {
+        localStorage.removeItem('jwt_token'); 
+        localStorage.removeItem('username'); 
+    }, []);
 
     // ログインモーダルからサインアップモーダルに切り替える関数
     const switchToSignup = () => {

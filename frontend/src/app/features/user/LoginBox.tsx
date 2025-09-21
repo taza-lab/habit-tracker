@@ -37,14 +37,15 @@ export default function LoginBox({ success, setSuccessMessage, switchToSignup }:
             // API実行
             const data = await login(username, password);
 
-            // JWTトークンをローカルストレージに保存
-            localStorage.setItem('jwt_token', data.token);
-            localStorage.setItem('username', data.user.username);
-            setPoints(data.user.points);
+            if (data) {
+                // JWTトークンをローカルストレージに保存
+                localStorage.setItem('jwt_token', data.token);
+                localStorage.setItem('username', data.user.username);
+                setPoints(data.user.points);
 
-            // TOP画面リダイレクト
-            router.push("/")
-
+                // TOP画面リダイレクト
+                router.push("/")    
+            }
         } catch (err) {
             setError(err.message);
             setSuccessMessage('');
