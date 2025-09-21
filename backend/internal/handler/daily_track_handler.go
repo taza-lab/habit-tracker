@@ -62,15 +62,10 @@ func (h *DailyTrackHandler) GetDailyTrack(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "エラーが発生しました。"})
 			return
 		}
-		if len(habits) == 0 {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "習慣が登録されていません。"})
-			return
-		}
 
 		// 習慣一覧を使ってステータスの配列を作成
 		var habitStatuses []*daily_track.HabitStatus
 		for _, habit := range habits {
-			log.Printf("[DEBUG] %v", habit)
 			habitStatus := &daily_track.HabitStatus{
 				HabitId:   habit.Id,
 				HabitName: habit.Name,

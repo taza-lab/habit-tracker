@@ -1,17 +1,18 @@
 package handler
 
 import (
-	"net/http"
-	"time"
-	"os"
 	"log"
+	"net/http"
+	"os"
+	"time"
 
-    "github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v4"
-	"golang.org/x/crypto/bcrypt"
+	"backend/internal/domain/common"
 	userModel "backend/internal/domain/model/user"
 	"backend/internal/domain/repository"
-	"backend/internal/domain/common"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserHandler struct {
@@ -25,8 +26,8 @@ func NewUserHandler(repo repository.UserRepository) *UserHandler {
 }
 
 type SignUpRequest struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Username        string `json:"username" binding:"required"`
+	Password        string `json:"password" binding:"required"`
 	ConfirmPassword string `json:"confirm_password" binding:"required"`
 }
 
@@ -45,9 +46,9 @@ func (h *UserHandler) SignUp(c *gin.Context) {
 	}
 
 	if signUpRequest.Password != signUpRequest.ConfirmPassword {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "確認用パスワードが一致しません。"})
-        return
-    }
+		c.JSON(http.StatusBadRequest, gin.H{"error": "確認用パスワードが一致しません。"})
+		return
+	}
 
 	// 同一usernameが登録済みかどうかのチェック
 	_, err := h.userRepo.FindByUserName(signUpRequest.Username)
@@ -61,10 +62,15 @@ func (h *UserHandler) SignUp(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "使用できないユーザーネームです。"})
 		return
 	}
-	
+
 	// 登録
-	user := userModel.User{Username: signUpRequest.Username, Password:signUpRequest.Password, Points: 0}
+	user := userModel.User{Username: signUpRequest.Username, Password: signUpRequest.Password, Points: 0}
 	result, err := h.userRepo.Register(&user)
+	if err != nil {
+		log.Printf("failed to register user: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "エラーが発生しました。"})
+		return
+	}
 	result.Password = ""
 
 	c.JSON(http.StatusOK, gin.H{
@@ -92,7 +98,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 
 		log.Printf("failed to find user: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "エラーが発生しました。"})
-			return
+		return
 	}
 
 	// パスワードチェック
@@ -107,7 +113,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 	// JWTトークンの生成
 	expirationTime := time.Now().Add(24 * time.Hour) // 有効期限は1日
 	claims := &userModel.Claims{
-		UserId: user.Id,
+		UserId:   user.Id,
 		Username: loginRequest.Username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
@@ -125,7 +131,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"token": tokenString,
-		"user": user,
+		"user":  user,
 	})
 }
 
@@ -134,4 +140,3 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, data)
 }
-
