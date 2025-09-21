@@ -16,7 +16,7 @@ export default function Home() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
-    const { points, setPoints, addPoints } = usePoint();
+    const { addPoints } = usePoint();
     const { showAlert } = useAlert();
 
     // 初期表示
@@ -25,13 +25,6 @@ export default function Home() {
             try {
                 const data = await fetchTodaysTrack();
                 setTodaysTrack(data);
-
-                // TODO: ログイン時に取得した値を持ち回りたい。このページが読み込まれるたびにAPI叩くのよくない。セッション管理かな？
-                // if (points === 0) {
-                //     const user = await fetchUser();
-                //     setPoints(user.points);
-                // }
-
             } catch (err) {
                 console.log(err);
                 setError('読み込みに失敗しました');
@@ -80,7 +73,7 @@ export default function Home() {
 
     return (
         <div style={{ padding: '2rem' }}>
-            <PageTitle title={todaysTrack.date ?? ''} />
+            <PageTitle title={formatDate(todaysTrack.date)} />
             <List>
                 {todaysTrack && todaysTrack.habitStatuses && todaysTrack.habitStatuses.length > 0 ? (
                     todaysTrack.habitStatuses.map(track => (
@@ -107,3 +100,16 @@ export default function Home() {
 
     );
 }
+
+// YYYY年m月d日 の形式に変換
+const formatDate = (dateString: string) => {
+  if (!dateString) {
+    return '';
+  }
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('ja-JP', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(date);
+};

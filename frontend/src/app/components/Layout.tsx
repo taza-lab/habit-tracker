@@ -1,10 +1,9 @@
 import { AppBar, Toolbar, Typography, Box, Container, BottomNavigation, BottomNavigationAction, Paper } from "@mui/material";
 import React, { ReactNode } from "react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import HomeIcon from "@mui/icons-material/Home";
-import SearchIcon from "@mui/icons-material/Search";
-import NotificationsIcon from "@mui/icons-material/Notifications";
+import { useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
+import FactCheckRoundedIcon from '@mui/icons-material/FactCheckRounded';
 import SettingsIcon from "@mui/icons-material/Settings";
 import SavingsRoundedIcon from '@mui/icons-material/SavingsRounded';
 import { usePoint } from '@/context/PointContext'; // Contextからフックをインポート
@@ -17,8 +16,34 @@ type LayoutProps = {
 
 const Layout = ({ showLoginedLayout, children }: LayoutProps) => {
     const [selectedMenu, setSelectedMenu] = useState(0);
+    const [userName, setUserName] = useState('please login');
     const router = useRouter();
+    const pathname = usePathname();
     const { points } = usePoint();
+
+    // コンポーネントがマウントされた後（クライアントサイドでのみ）にlocalStorageからデータを読み込む
+    useEffect(() => {
+        const storedUserName = localStorage.getItem('username');
+        if (storedUserName) {
+            setUserName(storedUserName);
+        }
+    }, []);
+
+    // URLのパスが変更されるたびにselectedMenuを更新
+    useEffect(() => {
+        switch (pathname) {
+            case '/':
+                setSelectedMenu(0);
+                break;
+            case '/habit-manage':
+                setSelectedMenu(1);
+                break;
+            default:
+                // 該当するパスがない場合は、どのメニューも選択しない
+                setSelectedMenu(null); // またはnullなど
+                break;
+        }
+    }, [pathname]);
 
     return (
         <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
@@ -26,7 +51,7 @@ const Layout = ({ showLoginedLayout, children }: LayoutProps) => {
             <AppBar position="static">
                 <Toolbar sx={{ minHeight: '8vh', alignItems: 'center' }}>
                     <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                        My App
+                        <AccountCircleRoundedIcon /> {userName}
                     </Typography>
                     {showLoginedLayout &&
                         <Typography variant="h6">
@@ -50,14 +75,9 @@ const Layout = ({ showLoginedLayout, children }: LayoutProps) => {
                         sx={{ pt: "15px" }}
                         showLabels
                         value={selectedMenu}
-                        onChange={(event, newValue) => {
-                            setSelectedMenu(newValue);
-                        }}
                     >
-                        <BottomNavigationAction label="ホーム" icon={<HomeIcon />} onClick={() => router.push("/")} />
-                        <BottomNavigationAction label="検索" icon={<SearchIcon />} onClick={() => router.push("/")} />
-                        <BottomNavigationAction label="通知" icon={<NotificationsIcon />} onClick={() => router.push("/")} />
-                        <BottomNavigationAction label="設定" icon={<SettingsIcon />} onClick={() => router.push("/habit-manage")} />
+                        <BottomNavigationAction label="Todays" icon={<FactCheckRoundedIcon />} onClick={() => router.push("/")} />
+                        <BottomNavigationAction label="Settings" icon={<SettingsIcon />} onClick={() => router.push("/habit-manage")} />
                     </BottomNavigation>
                 </Paper>
             }

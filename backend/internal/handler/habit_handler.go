@@ -8,8 +8,10 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"time"
 
 	"backend/internal/domain/common"
+	"backend/internal/domain/model/daily_track"
 	"backend/internal/domain/model/habit"
 	"backend/internal/domain/repository"
 	"backend/internal/utils"
@@ -18,12 +20,14 @@ import (
 )
 
 type HabitHandler struct {
-	habitRepo repository.HabitRepository
+	habitRepo      repository.HabitRepository
+	dailyTrackRepo repository.DailyTrackRepository
 }
 
-func NewHabitHandler(repo repository.HabitRepository) *HabitHandler {
+func NewHabitHandler(habitRepository repository.HabitRepository, dailyTrackRepository repository.DailyTrackRepository) *HabitHandler {
 	return &HabitHandler{
-		habitRepo: repo,
+		habitRepo:      habitRepository,
+		dailyTrackRepo: dailyTrackRepository,
 	}
 }
 
@@ -78,27 +82,49 @@ func (h *HabitHandler) RegisterHabit(c *gin.Context) {
 		return
 	}
 
-	// TODO: 今日のdaily-trackに追加
+	// 今日のdaily-trackを取得
+	todayString := time.Now().Format(`2006-01-02`) // YYYY-MM-DD
+	log.Printf("[DEBUG] %v", todayString)
+	todaysTrack, err := h.dailyTrackRepo.FindDailyTrack(userId, todayString)
+	if err != nil && !errors.Is(err, common.ErrNotFound) {
+		log.Printf("[ERROR] %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "エラーが発生しました。"})
+		return
+	}
+
+	// 今日のdaily-trackがあれば作成した習慣を追加
+	if !errors.Is(err, common.ErrNotFound) {
+
+		newHabitStatus := &daily_track.HabitStatus{
+			HabitId:   newHabit.Id,
+			HabitName: newHabit.Name,
+			IsDone:    false,
+		}
+		todaysTrack.HabitStatuses = append(todaysTrack.HabitStatuses, newHabitStatus)
+
+		err = h.dailyTrackRepo.UpdateHabitStatuses(todaysTrack)
+		if err != nil {
+			log.Printf("[ERROR] %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "エラーが発生しました。"})
+			return
+		}
+	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "success", "id": habit.Id})
 }
 
-func (h *HabitHandler) UpdateHabit(c *gin.Context) {
-	// TODO: 今後使うから残しておく
-	c.JSON(http.StatusOK, gin.H{"message": "success"})
-}
-
 func (h *HabitHandler) DeleteHabit(c *gin.Context) {
-	id := c.Param("id")
+	userId := utils.GetUserIdFromContext(c)
+	targetHabitId := c.Param("id")
 
 	// idが空文字列の場合のチェック
-	if id == "" {
+	if targetHabitId == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "IDは必須です。"})
 		return
 	}
 
 	// 削除
-	err := h.habitRepo.Delete(id)
+	err := h.habitRepo.Delete(targetHabitId)
 
 	if err != nil {
 		log.Printf("[ERROR] %v", err)
@@ -106,7 +132,37 @@ func (h *HabitHandler) DeleteHabit(c *gin.Context) {
 		return
 	}
 
-	// TODO: !isDoneだったら今日のdaily-trackから削除
+	// 今日のdaily-trackを取得
+	todayString := time.Now().Format(`2006-01-02`) // YYYY-MM-DD
+	todaysTrack, err := h.dailyTrackRepo.FindDailyTrack(userId, todayString)
+	if err != nil && !errors.Is(err, common.ErrNotFound) {
+		log.Printf("[ERROR] %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "エラーが発生しました。"})
+		return
+	}
+
+	if errors.Is(err, common.ErrNotFound) {
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+		return
+	}
+
+	// 今日のdaily-trackがあれば習慣を削除
+	for index, habitStatus := range todaysTrack.HabitStatuses {
+		if habitStatus.HabitId == targetHabitId && !habitStatus.IsDone {
+			// 削除対象の習慣が完了していなければ削除
+			todaysTrack.HabitStatuses = append(todaysTrack.HabitStatuses[:index], todaysTrack.HabitStatuses[index+1:]...)
+
+			// 永続化
+			err = h.dailyTrackRepo.UpdateHabitStatuses(todaysTrack)
+			if err != nil {
+				log.Printf("[ERROR] %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"message": "エラーが発生しました。"})
+				return
+			}
+
+			break
+		}
+	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }
