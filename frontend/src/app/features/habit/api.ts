@@ -1,40 +1,43 @@
 import { Habit } from '@/types/habit';
-import { getAuthHeaders } from '@/lib/api';
+import { apiRequest } from '@/lib/api';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-export async function fetchHabits(): Promise<Habit[]> {
-    const headers = getAuthHeaders();
+interface HabitApiData {
+    id: string;
+    user_id: string;
+    name: string;
+}
 
-    const res = await fetch(`${BASE_URL}/auth/habit/list`, { headers: headers });
-    if (!res.ok) throw new Error('Failed to fetch habits');
-    return res.json();
+export async function fetchHabits(): Promise<Habit[]> {
+    const apiData = await apiRequest<HabitApiData[]>(`auth/habit/list`);
+
+    return apiData.map(habit => ({
+        id: habit.id,
+        userId: habit.user_id,
+        name: habit.name,
+    }));
 }
 
 export async function createHabit(newHabit: Habit): Promise<{ id: string; message: string }> {
-    const headers = getAuthHeaders();
-
-    const res = await fetch(
-        `${BASE_URL}/auth/habit/register`,
+    const res = await apiRequest<{ id: string; message: string }>(
+        `auth/habit/register`,
         {
             method: 'POST',
             body: JSON.stringify(newHabit),
-            headers: headers
         }
     );
-    if (!res.ok) throw new Error('Failed to create habits');
-    return res.json();
+
+    return res;
 }
 
-export async function deleteHabit(id: string): Promise<Habit[]> {
-    const headers = getAuthHeaders();
-
-    const res = await fetch(`${BASE_URL}/auth/habit/${id}/delete`,
+export async function deleteHabit(id: string): Promise<void> {
+    await apiRequest(
+        `auth/habit/${id}/delete`,
         {
             method: 'DELETE',
-            headers: headers
         }
     );
-    if (!res.ok) throw new Error('Failed to delete habits');
-    return res.json();
+
+    return;
 }

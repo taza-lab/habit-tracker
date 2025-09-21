@@ -21,7 +21,7 @@ const Layout = ({ showLoginedLayout, children }: LayoutProps) => {
     const pathname = usePathname();
     const { points } = usePoint();
 
-    // コンポーネントがマウントされた後（クライアントサイドでのみ）にlocalStorageからデータを読み込む
+    // コンポーネントがマウントされた後（クライアントサイドでのみ）にlocalStorageからユーザー名を読み込む
     useEffect(() => {
         const storedUserName = localStorage.getItem('username');
         if (storedUserName) {
@@ -29,8 +29,9 @@ const Layout = ({ showLoginedLayout, children }: LayoutProps) => {
         }
     }, []);
 
-    // URLのパスが変更されるたびにselectedMenuを更新
+    // URLのパスが変更されたとき
     useEffect(() => {
+        // selectedMenuを更新
         switch (pathname) {
             case '/':
                 setSelectedMenu(0);
@@ -40,8 +41,14 @@ const Layout = ({ showLoginedLayout, children }: LayoutProps) => {
                 break;
             default:
                 // 該当するパスがない場合は、どのメニューも選択しない
-                setSelectedMenu(null); // またはnullなど
+                setSelectedMenu(null);
                 break;
+        }
+
+        // localStorageからユーザー名を再度読み込む
+        const storedUserName = localStorage.getItem('username');
+        if (storedUserName) {
+            setUserName(storedUserName);
         }
     }, [pathname]);
 

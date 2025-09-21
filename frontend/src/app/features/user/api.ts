@@ -1,49 +1,43 @@
 import { User } from '@/types/user';
-import { getAuthHeaders } from '@/lib/api';
+import { apiRequest } from '@/lib/api';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+interface UserApiData {
+    token: string;
+    user: {
+        id: string;
+        username: string;
+        password: string;
+        points: number;
+    }
+}
 
 export async function login(username: string, password: string): Promise<{ token: string, user: User }> {
-    const res = await fetch(
-        `${BASE_URL}/login`,
+    const apiData = await apiRequest<UserApiData>(
+        `login`,
         {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
         }
     );
 
-    if (!res.ok) {
-        const errorData = await res.json();
-        const errorMessage = errorData.error || 'Failed to signup';
-        throw new Error(errorMessage);
-    }
-
-    return res.json();
+    return {
+        token: apiData.token,
+        user: {
+            id: apiData.user.id,
+            username: apiData.user.username,
+            points: apiData.user.points,
+        }
+    };
 }
 
 export async function signup(username: string, password: string, confirmPassword: string): Promise<void> {
-    const res = await fetch(
-        `${BASE_URL}/signup`,
+    await apiRequest<UserApiData>(
+        `signup`,
         {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password, confirm_password: confirmPassword })
         }
     );
 
-    if (!res.ok) {
-        const errorData = await res.json();
-        const errorMessage = errorData.error || 'Failed to signup';
-        throw new Error(errorMessage);
-    }
-
-    return res.json();
-}
-
-export async function fetchUser(): Promise<User> {
-    const headers = getAuthHeaders();
-    const res = await fetch(`${BASE_URL}/auth/user`, { headers: headers });
-    if (!res.ok) throw new Error('Failed to fetch todays track');
-    return res.json();
+    return;
 }

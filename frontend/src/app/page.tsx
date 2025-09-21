@@ -6,6 +6,7 @@ import { List, ListItem, ListItemIcon, ListItemText, Button } from '@mui/materia
 import PageTitle from '@/components/PageTitle';
 import CheckBox from '@/components/DailyTrack/CheckBox';
 import { DailyTrack } from '@/types/daily-track';
+import { useAuthApi } from './hooks/useAuthApi';
 import { fetchTodaysTrack, todaysHabitDone } from '@/features/daily-track/api';
 import { usePoint } from '@/context/PointContext';
 import { useAlert } from '@/context/AlertContext';
@@ -16,6 +17,7 @@ export default function Home() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
+    const { handleAuthApiCall } = useAuthApi();
     const { addPoints } = usePoint();
     const { showAlert } = useAlert();
 
@@ -23,8 +25,10 @@ export default function Home() {
     useEffect(() => {
         const loadTodaysTrack = async () => {
             try {
-                const data = await fetchTodaysTrack();
-                setTodaysTrack(data);
+                const data = await handleAuthApiCall(fetchTodaysTrack);
+                if (data) {
+                    setTodaysTrack(data);
+                }
             } catch (err) {
                 console.log(err);
                 setError('読み込みに失敗しました');
@@ -43,7 +47,7 @@ export default function Home() {
     const handleHabitDoneCheck = async (targetHabitId: string) => {
         try {
             // API実行
-            await todaysHabitDone(targetHabitId);
+            await handleAuthApiCall(() => todaysHabitDone(targetHabitId));
 
             // データ更新
             const updatedHabitStatuses = todaysTrack.habitStatuses.map((item) => {
