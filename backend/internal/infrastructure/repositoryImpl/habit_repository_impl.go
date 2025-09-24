@@ -43,23 +43,23 @@ func NewHabitRepository(collection *mongo.Collection) repository.HabitRepository
 }
 
 // 習慣一覧取得
-func (r *HabitRepository) FetchAll(userId string) ([]*habit.Habit, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (r *HabitRepository) FetchAll(ctx context.Context, userId string) ([]*habit.Habit, error) {
+	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	// Find()で全件取得
-	cursor, err := r.collection.Find(ctx, bson.M{"user_id": userId})
+	cursor, err := r.collection.Find(timeoutCtx, bson.M{"user_id": userId})
 	if err != nil {
 		log.Printf("[ERROR] HabitRepository.FetchAll() failed to collection.Find (user_id: %s): %w", userId, err)
 
 		// NOTE: nilスライスは要素が一つもない有効なスライスと認識される
 		return nil, fmt.Errorf("failed to habit fetch all: %w", err)
 	}
-	defer cursor.Close(ctx)
+	// defer cursor.Close(timeoutCtx) いらない？
 
 	// 結果を格納するスライス
 	var habitDBs []habitDB
-	if err = cursor.All(ctx, &habitDBs); err != nil {
+	if err = cursor.All(timeoutCtx, &habitDBs); err != nil {
 		log.Printf("[ERROR] HabitRepository.FetchAll() failed to cursor.All : %w", err)
 		return nil, fmt.Errorf("failed to decode documents from cursor: %w", err)
 	}
@@ -74,13 +74,13 @@ func (r *HabitRepository) FetchAll(userId string) ([]*habit.Habit, error) {
 }
 
 // 習慣登録
-func (r *HabitRepository) Register(habit *habit.Habit) (*habit.Habit, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (r *HabitRepository) Register(ctx context.Context, habit *habit.Habit) (*habit.Habit, error) {
+	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	// nameの重複チェック
 	var existingHabitDB habitDB
-	err := r.collection.FindOne(ctx, bson.M{"user_id": habit.UserId, "name": habit.Name}).Decode(&existingHabitDB)
+	err := r.collection.FindOne(timeoutCtx, bson.M{"user_id": habit.UserId, "name": habit.Name}).Decode(&existingHabitDB)
 
 	if err == nil {
 		// すでに同名のhabitが存在する場合はエラーを返す
@@ -98,7 +98,7 @@ func (r *HabitRepository) Register(habit *habit.Habit) (*habit.Habit, error) {
 	}
 
 	// 新規登録
-	result, err := r.collection.InsertOne(ctx, habitDB)
+	result, err := r.collection.InsertOne(timeoutCtx, habitDB)
 
 	if err != nil {
 		log.Printf("[ERROR] HabitRepository.Register() failed to collection.InsertOne (data: %+v) : %w", habitDB, err)
@@ -113,8 +113,8 @@ func (r *HabitRepository) Register(habit *habit.Habit) (*habit.Habit, error) {
 }
 
 // 習慣削除
-func (r *HabitRepository) Delete(id string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (r *HabitRepository) Delete(ctx context.Context, id string) error {
+	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	var result *mongo.DeleteResult
@@ -127,7 +127,7 @@ func (r *HabitRepository) Delete(id string) error {
 		return fmt.Errorf("invalid ID: %w", err)
 	}
 
-	result, err = r.collection.DeleteOne(ctx, bson.M{"_id": objectID})
+	result, err = r.collection.DeleteOne(timeoutCtx, bson.M{"_id": objectID})
 	if err != nil {
 		log.Printf("[ERROR] HabitRepository.Delete() failed to collection.DeleteOne (_id: %s) : %w", id, err)
 		return fmt.Errorf("failed to delete habit: %w", err)

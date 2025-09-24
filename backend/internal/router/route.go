@@ -37,9 +37,6 @@ func NewRouter(config *RouterConfig) *gin.Engine {
 	protected := r.Group("/auth")
 	protected.Use(middleware.AuthMiddleware())
 	{
-		// ユーザー
-		protected.GET("/user", config.UserHandler.GetUser)
-
 		// 習慣トラック
 		protected.GET("/daily_track/:date", config.DailyTrackHandler.GetDailyTrack)
 		protected.POST("/daily_track/done", config.DailyTrackHandler.UpdateDoneDailyTrack)

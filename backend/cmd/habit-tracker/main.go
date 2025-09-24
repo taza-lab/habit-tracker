@@ -9,6 +9,7 @@ import (
 	"backend/internal/handler"
 	"backend/internal/infrastructure/database"
 	"backend/internal/infrastructure/repositoryImpl"
+	"backend/internal/infrastructure/serviceImpl"
 	"backend/internal/middleware"
 	"backend/internal/router"
 
@@ -26,7 +27,7 @@ func init() {
 }
 
 func main() {
-	// DB接続
+	// --- DB接続 ---
 	// 1. 環境変数からDB URIを取得
 	dbUri := os.Getenv("DATABASE_URI")
 	dbName := os.Getenv("DATABASE_NAME")
@@ -48,12 +49,17 @@ func main() {
 	habitRepo := repositoryImpl.NewHabitRepository(db.Collection("habits"))
 	dailyTrackRepo := repositoryImpl.NewDailyTrackRepository(db.Collection("daily_track"))
 
-	// 2. 各ハンドラーを生成し、対応するリポジトリを注入
-	userHandler := handler.NewUserHandler(userRepo)
-	habitHandler := handler.NewHabitHandler(habitRepo, dailyTrackRepo)
-	dailyTrackHandler := handler.NewDailyTrackHandler(dailyTrackRepo, habitRepo, userRepo)
+	// 2. 各サービスを生成し、使用するリポジトリを注入
+	userService := serviceImpl.NewUserService(dbClient.Client(), userRepo)
+	habitService := serviceImpl.NewHabitService(dbClient.Client(), habitRepo, dailyTrackRepo)
+	dailyTrackService := serviceImpl.NewDailyTrackService(dbClient.Client(), userRepo, habitRepo, dailyTrackRepo)
 
-	// 3. ルーター設定のコンフィグを作成
+	// 3. 各ハンドラーを生成し、対応するサービスを注入
+	userHandler := handler.NewUserHandler(userService)
+	habitHandler := handler.NewHabitHandler(habitService)
+	dailyTrackHandler := handler.NewDailyTrackHandler(dailyTrackService)
+
+	// 4. ルーター設定のコンフィグを作成
 	routerConfig := &router.RouterConfig{
 		UserHandler:       userHandler,
 		HabitHandler:      habitHandler,

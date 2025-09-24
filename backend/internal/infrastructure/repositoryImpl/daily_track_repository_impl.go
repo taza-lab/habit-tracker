@@ -40,12 +40,12 @@ func NewDailyTrackRepository(collection *mongo.Collection) repository.DailyTrack
 	}
 }
 
-func (r *DailyTrackRepository) FindDailyTrack(userId string, targetDate string) (*daily_track.DailyTrack, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (r *DailyTrackRepository) FindDailyTrack(ctx context.Context, userId string, targetDate string) (*daily_track.DailyTrack, error) {
+	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	var dailyTrackDB dailyTrackDB
-	err := r.collection.FindOne(ctx, bson.M{"user_id": userId, "date": targetDate}).Decode(&dailyTrackDB)
+	err := r.collection.FindOne(timeoutCtx, bson.M{"user_id": userId, "date": targetDate}).Decode(&dailyTrackDB)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, common.ErrNotFound
@@ -59,13 +59,13 @@ func (r *DailyTrackRepository) FindDailyTrack(userId string, targetDate string) 
 	return dailyTrack, nil
 }
 
-func (r *DailyTrackRepository) RegisterDailyTrack(dailyTrack *daily_track.DailyTrack) (*daily_track.DailyTrack, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (r *DailyTrackRepository) RegisterDailyTrack(ctx context.Context, dailyTrack *daily_track.DailyTrack) (*daily_track.DailyTrack, error) {
+	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	// 登録済みチェック
 	var existsDailyTrackDB dailyTrackDB
-	err := r.collection.FindOne(ctx, bson.M{"user_id": dailyTrack.UserId, "date": dailyTrack.Date}).Decode(&existsDailyTrackDB)
+	err := r.collection.FindOne(timeoutCtx, bson.M{"user_id": dailyTrack.UserId, "date": dailyTrack.Date}).Decode(&existsDailyTrackDB)
 	if err == nil {
 		return nil, common.ErrAlreadyExists
 	}
@@ -75,7 +75,7 @@ func (r *DailyTrackRepository) RegisterDailyTrack(dailyTrack *daily_track.DailyT
 	}
 
 	dailyTrackDB := convertToDailyTrackDBWithoutId(dailyTrack)
-	result, err := r.collection.InsertOne(ctx, dailyTrackDB)
+	result, err := r.collection.InsertOne(timeoutCtx, dailyTrackDB)
 
 	if err != nil {
 		log.Printf("[ERROR] DailyTrackRepository.RegisterDailyTrack() failed to collection.InsertOne (data: %+v) : %w", dailyTrackDB, err)
@@ -89,8 +89,8 @@ func (r *DailyTrackRepository) RegisterDailyTrack(dailyTrack *daily_track.DailyT
 	return dailyTrack, nil
 }
 
-func (r *DailyTrackRepository) UpdateHabitStatuses(dailyTrack *daily_track.DailyTrack) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (r *DailyTrackRepository) UpdateHabitStatuses(ctx context.Context, dailyTrack *daily_track.DailyTrack) error {
+	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	// ID変換
@@ -115,7 +115,7 @@ func (r *DailyTrackRepository) UpdateHabitStatuses(dailyTrack *daily_track.Daily
 	}
 
 	var result *mongo.UpdateResult
-	result, err = r.collection.UpdateOne(ctx, filter, update)
+	result, err = r.collection.UpdateOne(timeoutCtx, filter, update)
 
 	if err != nil {
 		log.Printf("[ERROR] DailyTrackRepository.UpdateHabitStatuses() failed to collection.UpdateOne (_id: %s, statuses: %+v) : %w", dailyTrack.Id, dailyTrackDB.HabitStatuses, err)
