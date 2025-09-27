@@ -37,8 +37,8 @@ func NewUserRepository(collection *mongo.Collection) repository.UserRepository {
 	}
 }
 
-func (r *UserRepository) Find(id string) (*userModel.User, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (r *UserRepository) Find(ctx context.Context, id string) (*userModel.User, error) {
+	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	// MongoDBの_idはObjectID型で保存される
@@ -48,7 +48,7 @@ func (r *UserRepository) Find(id string) (*userModel.User, error) {
 	}
 
 	var userDB userDB
-	err = r.collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&userDB)
+	err = r.collection.FindOne(timeoutCtx, bson.M{"_id": objectID}).Decode(&userDB)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, common.ErrNotFound
@@ -63,12 +63,12 @@ func (r *UserRepository) Find(id string) (*userModel.User, error) {
 	return user, nil
 }
 
-func (r *UserRepository) FindByUserName(username string) (*userModel.User, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (r *UserRepository) FindByUserName(ctx context.Context, username string) (*userModel.User, error) {
+	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	var userDB userDB
-	err := r.collection.FindOne(ctx, bson.M{"username": username}).Decode(&userDB)
+	err := r.collection.FindOne(timeoutCtx, bson.M{"username": username}).Decode(&userDB)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, common.ErrNotFound
@@ -82,8 +82,8 @@ func (r *UserRepository) FindByUserName(username string) (*userModel.User, error
 	return user, nil
 }
 
-func (r *UserRepository) Register(user *userModel.User) (*userModel.User, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (r *UserRepository) Register(ctx context.Context, user *userModel.User) (*userModel.User, error) {
+	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	// パスワードハッシュ化
@@ -99,7 +99,7 @@ func (r *UserRepository) Register(user *userModel.User) (*userModel.User, error)
 		Points:   user.Points,
 	}
 
-	result, err := r.collection.InsertOne(ctx, userDB)
+	result, err := r.collection.InsertOne(timeoutCtx, userDB)
 	if err != nil {
 		log.Printf("[ERROR] UserRepository.Register() failed to collection.InsertOne (data: %+v): %w", userDB, err)
 		return nil, fmt.Errorf("failed to register user: %w", err)
@@ -112,8 +112,8 @@ func (r *UserRepository) Register(user *userModel.User) (*userModel.User, error)
 	return user, nil
 }
 
-func (r *UserRepository) UpdatePoints(userId string, points int) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (r *UserRepository) UpdatePoints(ctx context.Context, userId string, points int) error {
+	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	// ID変換
@@ -135,7 +135,7 @@ func (r *UserRepository) UpdatePoints(userId string, points int) error {
 	}
 
 	var result *mongo.UpdateResult
-	result, err = r.collection.UpdateOne(ctx, filter, update)
+	result, err = r.collection.UpdateOne(timeoutCtx, filter, update)
 
 	if err != nil {
 		log.Printf("[ERROR] UserRepository.UpdatePoints() failed to collection.UpdateOne (_id: %s, points: %s) : %w", userId, points, err)
