@@ -59,7 +59,9 @@ export default function AuthPage({ setSuccessMessage, switchToLogin }: LoginBoxP
             switchToLogin();
 
         } catch (err) {
-            setError(err.message);
+            if (err instanceof Error) {
+                setError(err.message);
+            }
         } finally {
             setLoading(false);
         }

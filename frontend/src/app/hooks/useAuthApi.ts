@@ -11,7 +11,7 @@ export function useAuthApi() {
   const router = useRouter();
 
   // Promiseを返す任意の関数を型引数として受け取る
-  const handleAuthApiCall = useCallback(async <T, A extends any[]>(
+  const handleAuthApiCall = useCallback(async <T, A extends unknown[]>(
     apiFunction: (...args: A) => Promise<T>,
     ...args: A
   ): Promise<T | null> => {

@@ -1,20 +1,27 @@
-FROM golang:1.24.3
+# ビルドステージ
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
+# 依存関係の解決
+COPY go.mod ./
+COPY go.sum ./
 RUN go mod download
 
-COPY . ./
+# ソースコードのコピーとビルド
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/habit-tracker
 
-RUN go build -o app ./cmd/habit-tracker
+# 実行ステージ
+FROM alpine:latest
 
-ENV PATH="/go/bin:${PATH}"
+WORKDIR /root/
 
+# ビルドステージから実行ファイルをコピー
+COPY --from=builder /app/main .
+
+# ポートを公開
 EXPOSE 8080
 
-# airインストール
-RUN go install github.com/air-verse/air@latest
-
-CMD ["air"]
-
+# アプリケーションの実行
+CMD ["./main"]

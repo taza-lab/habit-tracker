@@ -32,13 +32,14 @@ export default function HabitManage() {
                     setHabits(data);
                 }
             } catch (err) {
+                console.log(err);
                 setError('読み込みに失敗しました');
             } finally {
                 setLoading(false);
             }
         };
         loadHabits();
-    }, []);
+    }, [handleAuthApiCall]);
 
     if (loading) return <p>読み込み中...</p>;
     if (error) return <p>{error}</p>;
@@ -65,6 +66,7 @@ export default function HabitManage() {
                 setHabits([...habits, newHabit]);
             }
         } catch (err) {
+            console.log(err);
             setError('登録に失敗しました');
         }
 
@@ -78,6 +80,7 @@ export default function HabitManage() {
             setHabits(prev => prev.filter(habit => habit.id !== id));
             
         } catch (err) {
+            console.log(err);
             setError('削除に失敗しました');
         }
         closeModal();

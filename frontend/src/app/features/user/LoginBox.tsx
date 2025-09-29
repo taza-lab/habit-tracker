@@ -47,7 +47,9 @@ export default function LoginBox({ success, setSuccessMessage, switchToSignup }:
                 router.push("/")    
             }
         } catch (err) {
-            setError(err.message);
+            if (err instanceof Error) {
+                setError(err.message);
+            }
             setSuccessMessage('');
         } finally {
             setLoading(false);
