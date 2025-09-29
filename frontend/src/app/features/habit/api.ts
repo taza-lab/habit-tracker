@@ -1,8 +1,6 @@
 import { Habit } from '@/types/habit';
 import { apiRequest } from '@/lib/api';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
 interface HabitApiData {
     id: string;
     user_id: string;

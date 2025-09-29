@@ -10,7 +10,7 @@ import { usePoint } from '@/context/PointContext'; // Contextからフックを�
 import { AlertDisplay } from './AlertDisplay';
 
 type LayoutProps = {
-    showLoginedLayout: Boolean;
+    showLoginedLayout: boolean;
     children: ReactNode;
 };
 
@@ -40,8 +40,7 @@ const Layout = ({ showLoginedLayout, children }: LayoutProps) => {
                 setSelectedMenu(1);
                 break;
             default:
-                // 該当するパスがない場合は、どのメニューも選択しない
-                setSelectedMenu(null);
+                setSelectedMenu(0);
                 break;
         }
 

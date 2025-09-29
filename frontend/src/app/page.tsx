@@ -38,7 +38,7 @@ export default function Home() {
         };
 
         loadTodaysTrack();
-    }, []);
+    }, [handleAuthApiCall]);
 
     if (loading) return <p>読み込み中...</p>;
     if (error) return <p>{error}</p>;
@@ -71,6 +71,7 @@ export default function Home() {
             }
 
         } catch (err) {
+            console.log(err);
             setError('更新に失敗しました');
         }
     }
@@ -82,7 +83,7 @@ export default function Home() {
                 {todaysTrack && todaysTrack.habitStatuses && todaysTrack.habitStatuses.length > 0 ? (
                     todaysTrack.habitStatuses.map(track => (
                         <ListItem key={track.habitId}>
-                            <ListItemIcon onClick={() => handleHabitDoneCheck(track.habitId)}>
+                            <ListItemIcon onClick={() => !track.isDone && handleHabitDoneCheck(track.habitId)}>
                                 <CheckBox isChecked={track.isDone} />
                             </ListItemIcon>
                             <ListItemText primary={track.habitName} />
@@ -94,8 +95,7 @@ export default function Home() {
                             <ListItemText primary="習慣が登録されていません。" />
                         </ListItem>
                         <ListItem>
-                            {/* TODO: 画面遷移にメニューバーのハイライトを連動させる */}
-                            <Button variant="contained" color="primary" onClick={() => router.push("/habit-manage")}>習慣を登録する</Button>
+                            <Button variant="contained" color="secondary" onClick={() => router.push("/habit-manage")}>習慣を登録する</Button>
                         </ListItem>
                     </>
                 )}
