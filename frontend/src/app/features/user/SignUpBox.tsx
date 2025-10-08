@@ -35,7 +35,7 @@ export default function AuthPage({ setSuccessMessage, switchToLogin }: LoginBoxP
                 setPasswordError('パスワードが一致しません');
                 setIsPasswordValid(false);
             } else {
-                setPasswordError(''); // エラーをクリア
+                setPasswordError('');
                 setIsPasswordValid(true);
             }
         } else {
@@ -55,7 +55,6 @@ export default function AuthPage({ setSuccessMessage, switchToLogin }: LoginBoxP
             // サインアップ成功ダイアログ表示
             setSuccessMessage('アカウント作成が成功しました。ログインしてください。');
 
-            // ログインモーダルに切り替え
             switchToLogin();
 
         } catch (err) {

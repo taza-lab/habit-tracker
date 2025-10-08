@@ -1,7 +1,6 @@
 import { DailyTrack } from '@/types/daily-track';
 import { apiRequest } from '@/lib/api';
 
-// APIが返す生のデータ型を定義
 interface DailyTrackApiData {
   id: string;
   user_id: string;

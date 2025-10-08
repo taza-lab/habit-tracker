@@ -5,7 +5,7 @@ const theme = createTheme({
         primary: { main: '#4cafafff' },
         secondary: { main: '#ff9800' },
         text: {
-            primary: '#171717', // 主要な文字色（濃いグレー）
+            primary: '#171717', // 主要な文字色
             secondary: '#757575',
         },
     },
