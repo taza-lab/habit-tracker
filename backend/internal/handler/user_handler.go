@@ -1,5 +1,9 @@
 package handler
 
+// handler規約
+// フロントで表示するメッセージはここに定義
+// サービスからのエラーはlog.Printf("[ERROR] ~")でそのまま出力
+
 import (
 	"errors"
 	"log"
@@ -46,7 +50,7 @@ func (h *UserHandler) SignUp(c *gin.Context) {
 		return
 	}
 
-	// サインインサービス実行
+	// サインアップサービス実行
 	result, err := h.userService.SignUp(c.Request.Context(), signUpRequest.Username, signUpRequest.Password)
 
 	if errors.Is(err, common.ErrAlreadyExists) {

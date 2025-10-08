@@ -1,5 +1,9 @@
 package handler
 
+// handler規約
+// フロントで表示するメッセージはここに定義
+// サービスからのエラーはlog.Printf("[ERROR] ~")でそのまま出力
+
 import (
 	"log"
 	"net/http"

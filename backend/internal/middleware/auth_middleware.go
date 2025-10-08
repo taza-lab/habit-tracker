@@ -11,7 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-var jwtSecret []byte // グローバル変数を宣言
+var jwtSecret []byte
 
 // 初期化関数
 func InitJWTSecret() {
