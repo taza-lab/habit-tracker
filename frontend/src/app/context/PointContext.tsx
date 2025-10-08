@@ -13,7 +13,6 @@ const PointContext = createContext<PointContextType | undefined>(undefined);
 const POINT_STORAGE_KEY = 'user_points';
 
 export function PointProvider({ children }: { children: ReactNode }) {
-    // 初期状態はサーバーとクライアントで一致する値（例: 0）に設定
     const [points, setPoints] = useState(0);
 
     // コンポーネントがマウントされた後（クライアントサイドでのみ）にlocalStorageからデータを読み込む
@@ -22,8 +21,8 @@ export function PointProvider({ children }: { children: ReactNode }) {
         if (storedPoints) {
             setPoints(parseInt(storedPoints, 10));
         }
-    }, []); // 初回マウント時のみ実行
-
+    }, []); 
+    
     // pointsが変更されるたびにlocalStorageに保存
     useEffect(() => {
         localStorage.setItem(POINT_STORAGE_KEY, points.toString());

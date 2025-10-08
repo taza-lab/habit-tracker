@@ -1,6 +1,6 @@
 package handler
 
-// handlerの規約
+// handler規約
 // フロントで表示するメッセージはここに定義
 // サービスからのエラーはlog.Printf("[ERROR] ~")でそのまま出力
 

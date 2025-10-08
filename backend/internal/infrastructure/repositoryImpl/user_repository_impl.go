@@ -1,5 +1,13 @@
 package repositoryImpl
 
+// RepositoryImpl規約
+//  取得したドキュメントをドメインモデルに変換して返却する
+//  エラーはDBからの元のエラーをfmt.Errorfでラップして返却する
+//  想定外のエラーの場合はlogでログ出力 -> [ERROR] HabitRepository.FugaMethod ~
+
+// メモ
+// GoのPrintf系関数では、%v（値）、%+v（フィールド名付きの値）、%#v（Goの構文形式）といったフォーマット指定子を使うことで、構造体の内容をまとめて出力できます。
+
 import (
 	"context"
 	"fmt"
