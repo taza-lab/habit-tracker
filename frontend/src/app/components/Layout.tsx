@@ -6,7 +6,7 @@ import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
 import FactCheckRoundedIcon from '@mui/icons-material/FactCheckRounded';
 import SettingsIcon from "@mui/icons-material/Settings";
 import SavingsRoundedIcon from '@mui/icons-material/SavingsRounded';
-import { usePoint } from '@/context/PointContext'; // Contextからフックをインポート
+import { usePoint } from '@/context/PointContext';
 import { AlertDisplay } from './AlertDisplay';
 
 type LayoutProps = {
@@ -55,7 +55,7 @@ const Layout = ({ showLoginedLayout, children }: LayoutProps) => {
         <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
             {/* タイトル */}
             <AppBar position="static">
-                <Toolbar sx={{ minHeight: '8vh', alignItems: 'center' }}>
+                <Toolbar sx={{ height: "75px", alignItems: "center" }}>
                     <Typography variant="h6" sx={{ flexGrow: 1 }}>
                         <AccountCircleRoundedIcon /> {userName}
                     </Typography>

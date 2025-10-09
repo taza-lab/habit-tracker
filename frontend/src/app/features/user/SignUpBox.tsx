@@ -20,28 +20,94 @@ interface LoginBoxProps {
 
 export default function AuthPage({ setSuccessMessage, switchToLogin }: LoginBoxProps) {
     const [username, setUsername] = useState('');
+    const [usernameError, setUsernameError] = useState('');
+    const [isUsernameValid, setIsUsernameValid] = useState(false);
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
+    const [confirmPasswordError, setConfirmPasswordError] = useState('');
     const [isPasswordValid, setIsPasswordValid] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // パスワード一致チェック
+    // ユーザー名チェック
     useEffect(() => {
-        // 両方のフィールドが空でなければチェックを行う
-        if (password && confirmPassword) {
-            if (password !== confirmPassword) {
-                setPasswordError('パスワードが一致しません');
-                setIsPasswordValid(false);
+        if (username) {
+            if (username.length < 5) {
+                setUsernameError('5文字以上入力してください');
+                setIsUsernameValid(false);
             } else {
-                setPasswordError('');
-                setIsPasswordValid(true);
+                setUsernameError('');
+                setIsUsernameValid(true)
             }
+        }
+    }, [username]);
+
+
+    // パスワードチェック
+    useEffect(() => {
+        // if (password) {
+        //     // 文字数チェック
+        //     if (password && password.length < 8) {
+        //         setPasswordError('8文字以上入力してください');
+        //         setIsPasswordValid(false);
+        //         return;
+        //     } else {
+        //         setConfirmPasswordError('');
+        //     }
+
+        //     if (confirmPassword) {
+        //         // パスワード一致チェック
+        //         if (password !== confirmPassword) {
+        //             setConfirmPasswordError('パスワードが一致しません');
+        //             setIsPasswordValid(false);
+        //         } else {
+        //             setConfirmPasswordError('');
+        //             setIsPasswordValid(true);
+        //         }
+        //     }
+            
+        // } else {
+        //     setConfirmPasswordError('');
+        //     setIsPasswordValid(false);
+        // }
+
+        let isValid = true;
+        let lengthError = '';
+        let matchError = '';
+
+        if (password) {
+            // 文字数チェック
+            if (password.length < 8) {
+                lengthError = '8文字以上入力してください';
+                isValid = false;
+            }
+
+            // パスワード一致チェック (confirmPasswordが入力されている場合のみ)
+            if (confirmPassword) {
+                if (password !== confirmPassword) {
+                    matchError = 'パスワードが一致しません';
+                    isValid = false;
+                }
+            } else if (password.length >= 8) {
+                // passwordが8文字以上でも、確認用が空なら無効（ただしエラーメッセージは出さない）
+                isValid = false;
+            }
+
+            // state更新
+            setPasswordError(lengthError);
+            setConfirmPasswordError(matchError);
+
+            // passwordが入力されていて、かつ全チェックを通過した場合のみtrue
+            setIsPasswordValid(isValid);
+
         } else {
             setPasswordError('');
+            setConfirmPasswordError('');
             setIsPasswordValid(false);
         }
+
+
     }, [password, confirmPassword]);
 
     const handleSignUp = async () => {
@@ -93,6 +159,8 @@ export default function AuthPage({ setSuccessMessage, switchToLogin }: LoginBoxP
                     autoComplete="username"
                     autoFocus
                     value={username}
+                    error={!!usernameError}
+                    helperText={usernameError}
                     onChange={(e) => setUsername(e.target.value)}
                 />
                 <TextField
@@ -104,6 +172,8 @@ export default function AuthPage({ setSuccessMessage, switchToLogin }: LoginBoxP
                     type="password"
                     autoComplete="current-password"
                     value={password}
+                    error={!!passwordError}
+                    helperText={passwordError}
                     onChange={(e) => setPassword(e.target.value)}
                 />
                 <TextField
@@ -116,15 +186,15 @@ export default function AuthPage({ setSuccessMessage, switchToLogin }: LoginBoxP
                     autoComplete="current-password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    error={!!passwordError}
-                    helperText={passwordError}
+                    error={!!confirmPasswordError}
+                    helperText={confirmPasswordError}
                 />
                 <Button
                     type="submit"
                     fullWidth
                     variant="contained"
                     sx={{ mt: 3, mb: 2 }}
-                    disabled={!username || !password || !confirmPassword || !isPasswordValid || loading}
+                    disabled={!isUsernameValid || !isPasswordValid || loading}
                     onClick={() => handleSignUp()}
                 >
                     {loading ? <CircularProgress size={24} /> : 'Sign Up'}

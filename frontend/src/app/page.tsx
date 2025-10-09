@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { List, ListItem, ListItemIcon, ListItemText, Button } from '@mui/material';
 import PageTitle from '@/components/PageTitle';
 import CheckBox from '@/components/DailyTrack/CheckBox';
+import Loading from '@/components/Loading';
 import { DailyTrack } from '@/types/daily-track';
 import { useAuthApi } from './hooks/useAuthApi';
 import { fetchTodaysTrack, todaysHabitDone } from '@/features/daily-track/api';
@@ -15,7 +16,6 @@ export default function Home() {
     // 定数定義
     const [todaysTrack, setTodaysTrack] = useState<DailyTrack>({ id: '', userId: '', date: '', habitStatuses: [] }); //初期値をundefinedにしないために空のtypeをセット
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const router = useRouter();
     const { handleAuthApiCall } = useAuthApi();
     const { addPoints } = usePoint();
@@ -31,7 +31,7 @@ export default function Home() {
                 }
             } catch (err) {
                 console.log(err);
-                setError('読み込みに失敗しました');
+                showAlert('読み込みに失敗しました', 'error');
             } finally {
                 setLoading(false);
             }
@@ -40,8 +40,7 @@ export default function Home() {
         loadTodaysTrack();
     }, [handleAuthApiCall]);
 
-    if (loading) return <p>読み込み中...</p>;
-    if (error) return <p>{error}</p>;
+    if (loading) return <Loading />;
 
     // チェック
     const handleHabitDoneCheck = async (targetHabitId: string) => {
@@ -72,7 +71,7 @@ export default function Home() {
 
         } catch (err) {
             console.log(err);
-            setError('更新に失敗しました');
+            showAlert('更新に失敗しました', 'error');
         }
     }
 
