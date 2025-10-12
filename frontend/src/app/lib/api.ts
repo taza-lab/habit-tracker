@@ -12,7 +12,6 @@ export function getAuthHeaders(): Record<string, string> {
     // localStorageからトークンを取得
     const token = localStorage.getItem('jwt_token');
 
-    // トークンが存在する場合のみ、ヘッダーを準備
     const headers: HeadersInit = {
         'Content-Type': 'application/json',
     };
@@ -37,6 +36,11 @@ export async function apiRequest<T>(
     ...getAuthHeaders(),
     ...options.headers, // 呼び出し元からのヘッダーをマージ
   };
+
+  // 認証が必要なリクエストで認証ヘッダーが存在しない場合、APIコール前にエラーを投げる
+   if (endpoint.includes('auth/') && !headers.hasOwnProperty('Authorization')) {
+    throw new AuthenticationError('認証情報を取得できませんでした。');
+  }
 
   const url = `${BASE_URL}/${endpoint}`;
 

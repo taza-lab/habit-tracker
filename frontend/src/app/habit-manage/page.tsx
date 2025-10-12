@@ -6,10 +6,12 @@ import AddIcon from '@mui/icons-material/Add';
 import SentimentSatisfiedRoundedIcon from '@mui/icons-material/SentimentSatisfiedRounded';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
-import { fetchHabits, createHabit, deleteHabit } from '@/features/habit/api';
+import { fetchHabits, createHabit, deleteHabit } from '@/features/habit-manage/api';
 import { useAuthApi } from '../hooks/useAuthApi';
 import { Habit } from '@/types/habit';
 import PageTitle from '@/components/PageTitle';
+import Loading from '@/components/Loading';
+import { useAlert } from '@/context/AlertContext';
 
 type Mode = 'create' | 'delete';
 
@@ -17,9 +19,9 @@ export default function HabitManage() {
 
     // 定数定義
     const { handleAuthApiCall } = useAuthApi();
+    const { showAlert } = useAlert();
     const [habits, setHabits] = useState<Habit[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [modalMode, setModalMode] = useState<Mode | null>(null);
     const [selectedItem, setSelectedItem] = useState<Habit | null>(null);
 
@@ -31,9 +33,10 @@ export default function HabitManage() {
                 if (data) {
                     setHabits(data);
                 }
+                
             } catch (err) {
                 console.log(err);
-                setError('読み込みに失敗しました');
+                showAlert('読み込みに失敗しました', 'error');
             } finally {
                 setLoading(false);
             }
@@ -41,8 +44,7 @@ export default function HabitManage() {
         loadHabits();
     }, [handleAuthApiCall]);
 
-    if (loading) return <p>読み込み中...</p>;
-    if (error) return <p>{error}</p>;
+    if (loading) return <Loading />;
 
     // モーダル操作
     const openModal = (mode: Mode, habit?: Habit) => {
@@ -67,7 +69,7 @@ export default function HabitManage() {
             }
         } catch (err) {
             console.log(err);
-            setError('登録に失敗しました');
+            showAlert('登録に失敗しました', 'error');
         }
 
         closeModal();
@@ -81,7 +83,7 @@ export default function HabitManage() {
             
         } catch (err) {
             console.log(err);
-            setError('削除に失敗しました');
+            showAlert('削除に失敗しました', 'error');
         }
         closeModal();
     }
@@ -97,12 +99,12 @@ export default function HabitManage() {
                     </ListItem>
                 ) : (
                     habits.map(habit => (
-                        <ListItem key={habit.id}>
-                            <ListItemIcon>
+                        <ListItem key={habit.id} sx={{ px: 0 }}>
+                            <ListItemIcon sx={{minWidth: 38}}>
                                 <SentimentSatisfiedRoundedIcon />
                             </ListItemIcon>
                             <ListItemText primary={habit.name} />
-                            <ListItemIcon>
+                            <ListItemIcon sx={{minWidth: 45, justifyContent: 'flex-end'}}>
                                 <DeleteIcon onClick={() => openModal('delete', habit)} />
                             </ListItemIcon>
 
@@ -116,16 +118,14 @@ export default function HabitManage() {
                 disabled={habits.length >= 5}
                 sx={{
                     position: "fixed",
-                    bottom: 100,
-                    right: 30,
+                    bottom: 120,
+                    right: 50,
                     width: 60,
                     height: 60,
                 }}
             >
                 <AddIcon
-                    sx={{
-                    fontSize: 36,
-                    }}
+                    sx={{ fontSize: 36 }}
                     onClick={() => openModal('create')}
                 />
             </Fab>
@@ -152,16 +152,41 @@ type ModalProps = {
 };
 
 const Modal = ({ mode, habit, onClose, onCreateSubmit, onDeleteSubmit }: ModalProps) => {
-    const [name, setName] = useState(habit?.name || '');
-
     const title =
         mode === 'create'
             ? '新規登録'
             : '削除確認';
 
+    const [name, setName] = useState(habit?.name || '');
+    const [habitNameError, setHabitNameError] = useState('');
+    const [isHabitNameValid, setIsHabitNameValid] = useState(false);
+
+    // 入力ルールの定数
+    const HABIT_NAME_MAX_LENGTH = 20;
+
+    // 入力文字チェック
+    useEffect(() => {
+        let isValid = true;
+        let nameRuleError = '';
+
+        if (name.length > 0) {
+            if (name.length > HABIT_NAME_MAX_LENGTH) {
+                nameRuleError = `${HABIT_NAME_MAX_LENGTH}文字まで入力できます`;
+                isValid = false;
+            }
+            setHabitNameError(nameRuleError);
+            setIsHabitNameValid(isValid);
+            return;
+        }
+
+        setHabitNameError('');
+        setIsHabitNameValid(false);
+
+    }, [name]);
+
     return (
         <div>
-            <Dialog open={true} onClose={onClose}>
+            <Dialog open={true} onClose={onClose} fullWidth={true}>
                 <DialogTitle>{title}</DialogTitle>
                 <IconButton
                     aria-label="close"
@@ -177,6 +202,7 @@ const Modal = ({ mode, habit, onClose, onCreateSubmit, onDeleteSubmit }: ModalPr
                 </IconButton>
 
                 {mode === 'delete' && habit !== null ? (
+                    // 削除
                     <div>
                         <DialogContent>
                             <p>「{habit.name}」を削除してもよろしいですか？</p>
@@ -186,6 +212,7 @@ const Modal = ({ mode, habit, onClose, onCreateSubmit, onDeleteSubmit }: ModalPr
                         </DialogActions>
                     </div>
                 ) : (
+                    // 登録
                     <div>
                         <DialogContent>
                             <TextField
@@ -195,13 +222,17 @@ const Modal = ({ mode, habit, onClose, onCreateSubmit, onDeleteSubmit }: ModalPr
                                 variant="standard"
                                 fullWidth
                                 type="text"
+                                inputProps={{
+                                    maxLength: 20,
+                                }}
                                 value={name}
+                                error={!!habitNameError}
                                 onChange={e => setName(e.target.value)}
                                 placeholder="新しい習慣を入力"
                             />
                         </DialogContent>
                         <DialogActions>
-                            <Button variant="contained" color="primary" onClick={() => onCreateSubmit(name)} disabled={!name.trim()}>登録</Button>
+                            <Button variant="contained" color="primary" onClick={() => onCreateSubmit(name)} disabled={!isHabitNameValid}>登録</Button>
                         </DialogActions>
                     </div>
 
