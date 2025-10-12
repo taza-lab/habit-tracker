@@ -16,6 +16,7 @@ export default function Home() {
     // 定数定義
     const [todaysTrack, setTodaysTrack] = useState<DailyTrack>({ id: '', userId: '', date: '', habitStatuses: [] }); //初期値をundefinedにしないために空のtypeをセット
     const [loading, setLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
     const { handleAuthApiCall } = useAuthApi();
     const { addPoints } = usePoint();
@@ -44,6 +45,16 @@ export default function Home() {
 
     // チェック
     const handleHabitDoneCheck = async (targetHabitId: string) => {
+        
+        // 二重送信防止
+        const isAlreadyDone = todaysTrack.habitStatuses.some(
+            (item) => item.habitId === targetHabitId && item.isDone
+        );
+        if (isAlreadyDone || isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
         try {
             // API実行
             await handleAuthApiCall(() => todaysHabitDone(targetHabitId));
@@ -72,6 +83,8 @@ export default function Home() {
         } catch (err) {
             console.log(err);
             showAlert('更新に失敗しました', 'error');
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
