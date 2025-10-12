@@ -152,12 +152,37 @@ type ModalProps = {
 };
 
 const Modal = ({ mode, habit, onClose, onCreateSubmit, onDeleteSubmit }: ModalProps) => {
-    const [name, setName] = useState(habit?.name || '');
-
     const title =
         mode === 'create'
             ? '新規登録'
             : '削除確認';
+
+    const [name, setName] = useState(habit?.name || '');
+    const [habitNameError, setHabitNameError] = useState('');
+    const [isHabitNameValid, setIsHabitNameValid] = useState(false);
+
+    // 入力ルールの定数
+    const HABIT_NAME_MAX_LENGTH = 20;
+
+    // 入力文字チェック
+    useEffect(() => {
+        let isValid = true;
+        let nameRuleError = '';
+
+        if (name.length > 0) {
+            if (name.length > HABIT_NAME_MAX_LENGTH) {
+                nameRuleError = `${HABIT_NAME_MAX_LENGTH}文字まで入力できます`;
+                isValid = false;
+            }
+            setHabitNameError(nameRuleError);
+            setIsHabitNameValid(isValid);
+            return;
+        }
+
+        setHabitNameError('');
+        setIsHabitNameValid(false);
+
+    }, [name]);
 
     return (
         <div>
@@ -177,6 +202,7 @@ const Modal = ({ mode, habit, onClose, onCreateSubmit, onDeleteSubmit }: ModalPr
                 </IconButton>
 
                 {mode === 'delete' && habit !== null ? (
+                    // 削除
                     <div>
                         <DialogContent>
                             <p>「{habit.name}」を削除してもよろしいですか？</p>
@@ -186,6 +212,7 @@ const Modal = ({ mode, habit, onClose, onCreateSubmit, onDeleteSubmit }: ModalPr
                         </DialogActions>
                     </div>
                 ) : (
+                    // 登録
                     <div>
                         <DialogContent>
                             <TextField
@@ -195,16 +222,17 @@ const Modal = ({ mode, habit, onClose, onCreateSubmit, onDeleteSubmit }: ModalPr
                                 variant="standard"
                                 fullWidth
                                 type="text"
-                                value={name}
                                 inputProps={{
-                                    maxLength: 20, // ここに制限したい最大文字数を指定 (例: 50文字)
+                                    maxLength: 20,
                                 }}
+                                value={name}
+                                error={!!habitNameError}
                                 onChange={e => setName(e.target.value)}
                                 placeholder="新しい習慣を入力"
                             />
                         </DialogContent>
                         <DialogActions>
-                            <Button variant="contained" color="primary" onClick={() => onCreateSubmit(name)} disabled={!name.trim()}>登録</Button>
+                            <Button variant="contained" color="primary" onClick={() => onCreateSubmit(name)} disabled={!isHabitNameValid}>登録</Button>
                         </DialogActions>
                     </div>
 

@@ -30,83 +30,68 @@ export default function AuthPage({ setSuccessMessage, switchToLogin }: LoginBoxP
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // 入力ルールの定数
+    const ALLOWED_CHARS_REGEX = /^[a-zA-Z0-9!@#$%^&*()_+=\-{}[\]|\\:;"'<>,.?/~`]*$/;
+    const USERNAME_MAX_LENGTH = 10;
+    const PASSWORD_MIN_LENGTH = 8;
+
     // ユーザー名チェック
     useEffect(() => {
-        if (username) {
-            if (username.length < 5) {
-                setUsernameError('5文字以上入力してください');
-                setIsUsernameValid(false);
-            } else {
-                setUsernameError('');
-                setIsUsernameValid(true)
+        let isValid = true;
+        let usernameRuleError = '';
+
+        if (username.length > 0) {
+            if (!ALLOWED_CHARS_REGEX.test(username)) {
+                usernameRuleError = '使用できない文字が含まれています';
+                isValid = false;
+            } else if (username.length > USERNAME_MAX_LENGTH) {
+                usernameRuleError = `${USERNAME_MAX_LENGTH}文字まで入力できます`;
+                isValid = false;
             }
+
+            setUsernameError(usernameRuleError);
+            setIsUsernameValid(isValid)
+            return;
         }
+
+        setUsernameError('');
+        setIsUsernameValid(false);
+
     }, [username]);
 
 
     // パスワードチェック
     useEffect(() => {
-        // if (password) {
-        //     // 文字数チェック
-        //     if (password && password.length < 8) {
-        //         setPasswordError('8文字以上入力してください');
-        //         setIsPasswordValid(false);
-        //         return;
-        //     } else {
-        //         setConfirmPasswordError('');
-        //     }
-
-        //     if (confirmPassword) {
-        //         // パスワード一致チェック
-        //         if (password !== confirmPassword) {
-        //             setConfirmPasswordError('パスワードが一致しません');
-        //             setIsPasswordValid(false);
-        //         } else {
-        //             setConfirmPasswordError('');
-        //             setIsPasswordValid(true);
-        //         }
-        //     }
-            
-        // } else {
-        //     setConfirmPasswordError('');
-        //     setIsPasswordValid(false);
-        // }
-
         let isValid = true;
-        let lengthError = '';
+        let passwordRuleError = '';
         let matchError = '';
 
-        if (password) {
-            // 文字数チェック
-            if (password.length < 8) {
-                lengthError = '8文字以上入力してください';
+        if (password.length > 0) {
+            if (!ALLOWED_CHARS_REGEX.test(password)) {
+                passwordRuleError = '使用できない文字が含まれています';
+                isValid = false;
+            } else if (password.length < PASSWORD_MIN_LENGTH) {
+                passwordRuleError = `${PASSWORD_MIN_LENGTH}文字以上入力してください`;
                 isValid = false;
             }
 
             // パスワード一致チェック (confirmPasswordが入力されている場合のみ)
-            if (confirmPassword) {
-                if (password !== confirmPassword) {
-                    matchError = 'パスワードが一致しません';
-                    isValid = false;
-                }
-            } else if (password.length >= 8) {
-                // passwordが8文字以上でも、確認用が空なら無効（ただしエラーメッセージは出さない）
+            if (confirmPassword.length == 0) {
+                isValid = false;
+            } else if (confirmPassword !== password) {
+                matchError = 'パスワードが一致しません';
                 isValid = false;
             }
 
-            // state更新
-            setPasswordError(lengthError);
+            setPasswordError(passwordRuleError);
             setConfirmPasswordError(matchError);
-
-            // passwordが入力されていて、かつ全チェックを通過した場合のみtrue
             setIsPasswordValid(isValid);
-
-        } else {
-            setPasswordError('');
-            setConfirmPasswordError('');
-            setIsPasswordValid(false);
+            return;
         }
-
+        
+        setPasswordError('');
+        setConfirmPasswordError('');
+        setIsPasswordValid(false);
 
     }, [password, confirmPassword]);
 
@@ -158,6 +143,10 @@ export default function AuthPage({ setSuccessMessage, switchToLogin }: LoginBoxP
                     name="username"
                     autoComplete="username"
                     autoFocus
+                    inputProps={{
+                        maxLength: 10,
+                        pattern: '[a-zA-Z0-9!@#$%^&*()_+=\-{}[\]|\\:;"\'<>,.?/~`]*',
+                    }}
                     value={username}
                     error={!!usernameError}
                     helperText={usernameError}
@@ -171,6 +160,9 @@ export default function AuthPage({ setSuccessMessage, switchToLogin }: LoginBoxP
                     label="password"
                     type="password"
                     autoComplete="current-password"
+                    inputProps={{
+                        pattern: '[a-zA-Z0-9!@#$%^&*()_+=\-{}[\]|\\:;"\'<>,.?/~`]*',
+                    }}
                     value={password}
                     error={!!passwordError}
                     helperText={passwordError}
@@ -184,6 +176,9 @@ export default function AuthPage({ setSuccessMessage, switchToLogin }: LoginBoxP
                     label="password (確認)"
                     type="password"
                     autoComplete="current-password"
+                    inputProps={{
+                        pattern: '[a-zA-Z0-9!@#$%^&*()_+=\-{}[\]|\\:;"\'<>,.?/~`]*',
+                    }}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     error={!!confirmPasswordError}
